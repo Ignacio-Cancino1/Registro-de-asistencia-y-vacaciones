@@ -123,5 +123,61 @@ Con relaciones 1:N desde `usuarios` a todas las tablas de actividad.
 
 ------------------------------------------------------------------------------------------------------------------------------------------
 
+## 🌐 Despliegue en Producción
+
+### 🔹 Frontend (React) en Vercel
+
+El frontend está desplegado en [Vercel](https://vercel.com), lo que permite una carga rápida, actualización continua y dominio personalizado.
+
+📍 **URL del sitio**:  
+`https://registro-asistencia.vercel.app` *(modifícalo según tu proyecto real)*
+
+#### Instrucciones de despliegue:
+
+1. Crear cuenta en [Vercel](https://vercel.com) y vincular con GitHub.
+2. Importar el proyecto y seleccionar `/frontend` como carpeta raíz.
+3. Configurar las variables de entorno necesarias:
+   - `VITE_API_URL=https://backend-render.onrender.com/api`
+4. Hacer deploy. Vercel construirá automáticamente el proyecto React.
+
+------------------------------------------------------------------------------------------------------------------------------------------
+
+### 🔸 Backend (Flask) en Render o Railway
+
+El backend puede desplegarse en servicios como [Render](https://render.com) o [Railway](https://railway.app), permitiendo una API REST pública.
+
+📍 **URL del backend (ejemplo)**:  
+`https://registro-api.onrender.com/api`
+
+#### Instrucciones de despliegue:
+
+1. Subir el contenido de la carpeta `/backend` a un nuevo servicio web en Render o Railway.
+2. Configurar variables de entorno:
+   - `DATABASE_URL`
+   - `SECRET_KEY`
+   - `JWT_SECRET`
+3. Definir el comando de inicio: `gunicorn app:app` o `python app.py`
+4. Exponer el puerto correcto (Render usa por defecto `$PORT`).
+
+------------------------------------------------------------------------------------------------------------------------------------------
+
+### 🔐 Variables de entorno necesarias
+
+#### Frontend (Vercel)
+
+```
+VITE_API_URL=https://tubackend/api
+```
+
+#### Backend (Render)
+
+```
+DATABASE_URL=postgresql://usuario:clave@host:puerto/db
+SECRET_KEY=clave_secreta_para_sesion
+JWT_SECRET=clave_para_tokens
+```
+
+------------------------------------------------------------------------------------------------------------------------------------------
+
 ## 🪪 Licencia
 MIT © 2025 Ignacio Cancino
