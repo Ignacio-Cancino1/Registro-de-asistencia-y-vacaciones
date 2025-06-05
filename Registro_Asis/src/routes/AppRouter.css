@@ -1,0 +1,9 @@
+.app-container {
+  display: flex;
+}
+
+.main-content {
+  margin-left: 220px; /* Ancho del sidebar */
+  padding: 2rem;
+  flex-grow: 1;
+}
