@@ -1,88 +1,52 @@
 import { useState } from 'react';
-import VacacionesTable from '../components/VacacionesTable';
-import VacacionesForm from '../components/VacacionesForm';
+import { useAuth } from '../context/useAuth';
 
 export default function Vacaciones() {
   const [solicitudes, setSolicitudes] = useState([
-    { id: 1, nombre: 'Juan Pérez', fechaInicio: '2025-06-10', fechaFin: '2025-06-14', estado: 'Pendiente' },
-    { id: 2, nombre: 'Laura Díaz', fechaInicio: '2025-07-01', fechaFin: '2025-07-07', estado: 'Aprobada' },
-    { id: 3, nombre: 'Carlos Soto', fechaInicio: '2025-06-20', fechaFin: '2025-06-22', estado: 'Pendiente' },
+    { id: 1, empleado: 'Juan', inicio: '2025-06-10', fin: '2025-06-15', estado: 'Pendiente' },
+    { id: 2, empleado: 'Ana', inicio: '2025-07-01', fin: '2025-07-05', estado: 'Aprobada' },
   ]);
 
-  const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [filtroNombre, setFiltroNombre] = useState('');
-  const [filtroEstado, setFiltroEstado] = useState('');
-  const [filtroFecha, setFiltroFecha] = useState('');
+  const { rol } = useAuth();
 
-  const agregarSolicitud = (nueva) => {
-    setSolicitudes([
-      ...solicitudes,
-      { ...nueva, id: Date.now(), estado: 'Pendiente' },
-    ]);
+  const aprobarSolicitud = (id) => {
+    setSolicitudes(solicitudes.map(s => s.id === id ? { ...s, estado: 'Aprobada' } : s));
   };
 
-  const actualizarEstado = (id, nuevoEstado) => {
-    setSolicitudes((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, estado: nuevoEstado } : s))
-    );
+  const rechazarSolicitud = (id) => {
+    setSolicitudes(solicitudes.map(s => s.id === id ? { ...s, estado: 'Rechazada' } : s));
   };
-
-  const solicitudesFiltradas = solicitudes.filter((s) => {
-    const coincideNombre = s.nombre.toLowerCase().includes(filtroNombre.toLowerCase());
-    const coincideEstado = filtroEstado === '' || s.estado === filtroEstado;
-    const coincideFecha =
-      filtroFecha === '' ||
-      s.fechaInicio === filtroFecha ||
-      s.fechaFin === filtroFecha;
-    return coincideNombre && coincideEstado && coincideFecha;
-  });
 
   return (
     <div>
-      <h1>Solicitudes de Vacaciones</h1>
-
-      {/* Filtros */}
-      <div style={{ marginBottom: '1rem' }}>
-        <input
-          type="text"
-          placeholder="Filtrar por nombre"
-          value={filtroNombre}
-          onChange={(e) => setFiltroNombre(e.target.value)}
-          style={{ marginRight: '1rem' }}
-        />
-        <select
-          value={filtroEstado}
-          onChange={(e) => setFiltroEstado(e.target.value)}
-          style={{ marginRight: '1rem' }}
-        >
-          <option value="">Todos</option>
-          <option value="Pendiente">Pendiente</option>
-          <option value="Aprobada">Aprobada</option>
-          <option value="Rechazada">Rechazada</option>
-        </select>
-        <input
-          type="date"
-          value={filtroFecha}
-          onChange={(e) => setFiltroFecha(e.target.value)}
-        />
-      </div>
-
-      {/* Botón y formulario */}
-      <button onClick={() => setMostrarFormulario(true)}>
-        ➕ Solicitar Vacaciones
-      </button>
-
-      {mostrarFormulario && (
-        <VacacionesForm
-          onAgregar={agregarSolicitud}
-          onClose={() => setMostrarFormulario(false)}
-        />
-      )}
-
-      <VacacionesTable
-        solicitudes={solicitudesFiltradas}
-        onActualizarEstado={actualizarEstado}
-      />
+      <h2>Solicitudes de Vacaciones</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Empleado</th>
+            <th>Inicio</th>
+            <th>Fin</th>
+            <th>Estado</th>
+            {rol === 'admin' && <th>Acciones</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {solicitudes.map((s) => (
+            <tr key={s.id}>
+              <td>{s.empleado}</td>
+              <td>{s.inicio}</td>
+              <td>{s.fin}</td>
+              <td>{s.estado}</td>
+              {rol === 'admin' && (
+                <td>
+                  <button onClick={() => aprobarSolicitud(s.id)}>Aprobar</button>
+                  <button onClick={() => rechazarSolicitud(s.id)}>Rechazar</button>
+                </td>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

@@ -1,44 +1,41 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import './Navbar.css';
 
 export default function Navbar() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { isAuthenticated, rol, logout } = useAuth();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
-
-  const navItems = [
-    { path: '/dashboard', label: 'Dashboard' },
-    { path: '/empleados', label: 'Empleados' },
-    { path: '/asistencia', label: 'Asistencia' },
-    { path: '/vacaciones', label: 'Vacaciones' },
-  ];
+  if (!isAuthenticated) return null;
 
   return (
-    <aside className="sidebar">
-      <h2 className="logo">🗂️ Empresa</h2>
-      <ul className="menu">
-        {navItems.map((item) => (
-          <li key={item.path}>
-            <Link
-              to={item.path}
-              className={location.pathname === item.path ? 'active' : ''}
-            >
-              {item.label}
-            </Link>
-          </li>
-        ))}
+    <nav style={{ background: '#333', padding: '1rem' }}>
+      <ul style={{ display: 'flex', listStyle: 'none', gap: '1rem', color: 'white' }}>
+        <li><Link to="/dashboard" style={{ color: 'white' }}>Dashboard</Link></li>
+
+        {rol === 'admin' && (
+          <>
+            <li><Link to="/empleados" style={{ color: 'white' }}>Empleados</Link></li>
+            <li><Link to="/asistencia" style={{ color: 'white' }}>Asistencia</Link></li>
+            <li><Link to="/vacaciones" style={{ color: 'white' }}>Vacaciones</Link></li>
+            <li><Link to="/reportes" style={{ color: 'white' }}>Reportes</Link></li>
+          </>
+        )}
+
+        {rol === 'empleado' && (
+          <>
+            <li><Link to="/mi-asistencia" style={{ color: 'white' }}>Mi Asistencia</Link></li>
+            <li><Link to="/mis-vacaciones" style={{ color: 'white' }}>Mis Vacaciones</Link></li>
+          </>
+        )}
+
         <li>
-          <button onClick={handleLogout} className="logout-button">
+          <button
+            onClick={logout}
+            style={{ background: 'red', color: 'white', border: 'none', padding: '0.5rem 1rem' }}
+          >
             Cerrar sesión
           </button>
         </li>
       </ul>
-    </aside>
+    </nav>
   );
 }

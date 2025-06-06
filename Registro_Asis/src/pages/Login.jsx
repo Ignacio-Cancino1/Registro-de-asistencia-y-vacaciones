@@ -1,34 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import './Login.css';
 
 export default function Login() {
   const [correo, setCorreo] = useState('');
   const [clave, setClave] = useState('');
   const [error, setError] = useState('');
-
+  const { login } = useAuth();
   const navigate = useNavigate();
-  const { isAuthenticated, login } = useAuth();
 
-  // 🔒 Redirigir si ya está autenticado
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/dashboard');
-    }
-  }, [isAuthenticated, navigate]);
-
-  const mockUser = {
-    correo: 'admin@empresa.com',
-    clave: '123456',
-  };
+  const usuariosSimulados = [
+    { correo: 'admin@empresa.com', clave: '123456', rol: 'admin' },
+    { correo: 'empleado@empresa.com', clave: '123456', rol: 'empleado' },
+  ];
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setError('');
+    const user = usuariosSimulados.find(
+      (u) => u.correo === correo && u.clave === clave
+    );
 
-    if (correo === mockUser.correo && clave === mockUser.clave) {
-      login();
+    if (user) {
+      login(user.rol);
       navigate('/dashboard');
     } else {
       setError('Correo o contraseña incorrectos');
@@ -36,26 +29,21 @@ export default function Login() {
   };
 
   return (
-    <div className="login-container">
-      <h2>Iniciar Sesión</h2>
-      <form className="login-form" onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="Correo"
-          value={correo}
-          onChange={(e) => setCorreo(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={clave}
-          onChange={(e) => setClave(e.target.value)}
-          required
-        />
-        {error && <p className="login-error">{error}</p>}
-        <button type="submit">Ingresar</button>
-      </form>
-    </div>
+    <form onSubmit={handleSubmit}>
+      <input
+        type="email"
+        placeholder="Correo"
+        value={correo}
+        onChange={(e) => setCorreo(e.target.value)}
+      />
+      <input
+        type="password"
+        placeholder="Contraseña"
+        value={clave}
+        onChange={(e) => setClave(e.target.value)}
+      />
+      <button type="submit">Iniciar Sesión</button>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+    </form>
   );
 }
