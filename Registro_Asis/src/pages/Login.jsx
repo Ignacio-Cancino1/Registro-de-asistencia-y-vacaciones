@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
+import './Login.css';
 
 export default function Login() {
   const [correo, setCorreo] = useState('');
@@ -29,21 +30,26 @@ export default function Login() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="email"
-        placeholder="Correo"
-        value={correo}
-        onChange={(e) => setCorreo(e.target.value)}
-      />
-      <input
-        type="password"
-        placeholder="Contraseña"
-        value={clave}
-        onChange={(e) => setClave(e.target.value)}
-      />
-      <button type="submit">Iniciar Sesión</button>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-    </form>
+    <div className="login-container">
+      <form className="login-form" onSubmit={handleSubmit}>
+        <h2>Iniciar Sesión</h2>
+        <input
+          type="email"
+          placeholder="Correo"
+          value={correo}
+          onChange={(e) => setCorreo(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Contraseña"
+          value={clave}
+          onChange={(e) => setClave(e.target.value)}
+          required
+        />
+        <button type="submit">Entrar</button>
+        {error && <p className="error">{error}</p>}
+      </form>
+    </div>
   );
 }
