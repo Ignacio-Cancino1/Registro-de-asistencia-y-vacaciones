@@ -10,6 +10,7 @@ import Reportes from '../pages/Reportes';
 
 import Navbar from '../components/Navbar';
 import RoleRoute from './RoleRoute';
+import PrivateRoute from './PrivateRoute';
 
 function AppLayout() {
   return (
@@ -66,8 +67,16 @@ export default function AppRouter() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />} />
-        <Route path="/*" element={<AppLayout />} />
+        {/* Login público */}
+        <Route path="/login" element={<Login />} />
+
+        {/* Rutas protegidas por autenticación */}
+        <Route element={<PrivateRoute />}>
+          <Route path="/*" element={<AppLayout />} />
+        </Route>
+
+        {/* Redirección desde / según autenticación */}
+        <Route path="/" element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} />} />
       </Routes>
     </Router>
   );

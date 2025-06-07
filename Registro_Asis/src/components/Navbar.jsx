@@ -1,10 +1,16 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 
 export default function Navbar() {
   const { isAuthenticated, rol, logout } = useAuth();
+  const navigate = useNavigate(); // 👈 Importante para redirigir
 
   if (!isAuthenticated) return null;
+
+  const handleLogout = () => {
+    logout();             // Limpia el contexto
+    navigate('/login');   // Redirige al login
+  };
 
   return (
     <nav style={{ background: '#333', padding: '1rem' }}>
@@ -29,7 +35,7 @@ export default function Navbar() {
 
         <li>
           <button
-            onClick={logout}
+            onClick={handleLogout}
             style={{ background: 'red', color: 'white', border: 'none', padding: '0.5rem 1rem' }}
           >
             Cerrar sesión
