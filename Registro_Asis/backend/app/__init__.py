@@ -4,6 +4,7 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
 import os
+from app.routes.protegido import protegido_bp
 
 db = SQLAlchemy()
 jwt = JWTManager()
@@ -23,5 +24,6 @@ def create_app():
     from app.models.usuario import Usuario
     from app.routes.auth import auth_bp
     app.register_blueprint(auth_bp)
+    app.register_blueprint(protegido_bp)
 
     return app

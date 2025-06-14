@@ -15,5 +15,6 @@ def login():
     if not usuario:
         return jsonify({"msg": "Correo o clave incorrectos"}), 401
 
-    token = create_access_token(identity=usuario.id)
+    token = create_access_token(identity=str(usuario.id))
     return jsonify(token=token, rol=usuario.rol)
+
