@@ -27,14 +27,18 @@ def create_app():
     # Importación de modelos (para registrar con SQLAlchemy)
     from app.models.usuario import Usuario
     from app.models.empleado import Empleado
+    from app.models.asistencia import Asistencia
+
 
     # Registro de Blueprints
     from app.routes.auth import auth_bp
     from app.routes.protegido import protegido_bp
     from app.routes.empleado import empleado_bp
+    from app.routes.asistencia import asistencia_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(protegido_bp)
     app.register_blueprint(empleado_bp)
+    app.register_blueprint(asistencia_bp)
 
     return app

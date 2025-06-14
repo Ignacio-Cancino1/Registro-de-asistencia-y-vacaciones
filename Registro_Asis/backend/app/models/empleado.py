@@ -8,6 +8,8 @@ class Empleado(db.Model):
     estado = db.Column(db.String(20), default='Activo')  # Activo o Inactivo
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), unique=True)
 
+    asistencias = db.relationship('Asistencia', backref='empleado', lazy=True)
+
     def to_dict(self):
         return {
             "id": self.id,
