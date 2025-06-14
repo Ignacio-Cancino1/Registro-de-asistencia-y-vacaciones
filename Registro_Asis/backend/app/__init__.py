@@ -38,11 +38,15 @@ def create_app():
     from app.routes.empleado import empleado_bp
     from app.routes.asistencia import asistencia_bp
     from app.routes.vacaciones import vacaciones_bp
+    from app.routes.reportes import reportes_bp
+
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(protegido_bp)
     app.register_blueprint(empleado_bp)
     app.register_blueprint(asistencia_bp)
     app.register_blueprint(vacaciones_bp)
+    app.register_blueprint(reportes_bp)
+
 
     return app
