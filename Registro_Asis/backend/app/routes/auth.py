@@ -14,7 +14,28 @@ def login():
     usuario = Usuario.query.filter_by(correo=correo, clave=clave).first()
     if not usuario:
         return jsonify({"msg": "Correo o clave incorrectos"}), 401
-
-    token = create_access_token(identity=str(usuario.id))
+        
+    claims = {"rol": usuario.rol}
+    token = create_access_token(identity=str(usuario.id), additional_claims=claims)
     return jsonify(token=token, rol=usuario.rol)
 
+@auth_bp.route('/api/registro', methods=['POST'])
+def registrar_usuario():
+    data = request.get_json()
+    correo = data.get('correo')
+    clave = data.get('clave')
+    rol = data.get('rol', 'empleado')  # por defecto, nuevo usuario será empleado
+
+    # Validación básica
+    if not correo or not clave:
+        return jsonify({"msg": "Correo y clave son obligatorios"}), 400
+
+    # Verifica si ya existe un usuario con ese correo
+    if Usuario.query.filter_by(correo=correo).first():
+        return jsonify({"msg": "Ya existe un usuario con ese correo"}), 409
+
+    nuevo_usuario = Usuario(correo=correo, clave=clave, rol=rol)
+    db.session.add(nuevo_usuario)
+    db.session.commit()
+
+    return jsonify({"msg": "Usuario registrado exitosamente"}), 201
