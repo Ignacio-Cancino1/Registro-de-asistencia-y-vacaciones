@@ -16,14 +16,15 @@ export default function EmpleadoForm({ onGuardar, onClose, empleadoEditando }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const nuevoEmpleado = {
-      id: empleadoEditando ? empleadoEditando.id : Date.now(),
+    const empleadoData = {
       nombre,
       cargo,
       estado,
     };
-    onGuardar(nuevoEmpleado);
-    onClose();
+    if (empleadoEditando?.id) {
+      empleadoData.id = empleadoEditando.id;
+    }
+    onGuardar(empleadoData);
   };
 
   return (

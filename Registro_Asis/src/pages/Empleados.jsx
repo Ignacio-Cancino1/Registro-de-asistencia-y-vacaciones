@@ -1,40 +1,69 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import API from '../services/api';
 import EmpleadoTable from '../components/EmpleadoTable';
 import EmpleadoForm from '../components/EmpleadoForm';
 
 export default function Empleados() {
-  const [empleados, setEmpleados] = useState([
-    { id: 1, nombre: 'Juan Pérez', cargo: 'Analista', estado: 'Activo' },
-    { id: 2, nombre: 'Laura Díaz', cargo: 'Diseñadora', estado: 'Inactivo' },
-    { id: 3, nombre: 'Carlos Soto', cargo: 'Desarrollador', estado: 'Activo' },
-  ]);
-
+  const [empleados, setEmpleados] = useState([]);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [empleadoEditando, setEmpleadoEditando] = useState(null);
 
-  const agregarOEditarEmpleado = (empleado) => {
-    setEmpleados((prev) => {
-      const existe = prev.find((e) => e.id === empleado.id);
-      if (existe) {
-        return prev.map((e) => (e.id === empleado.id ? empleado : e));
-      } else {
-        return [...prev, empleado];
+  // Obtener empleados al cargar la vista
+  useEffect(() => {
+    const fetchEmpleados = async () => {
+      try {
+        const res = await API.get('/empleados');
+        setEmpleados(res.data);
+      } catch (error) {
+        console.error('Error al cargar empleados:', error);
       }
-    });
-  };
+    };
 
-  const eliminarEmpleado = (id) => {
-    const confirmado = window.confirm('¿Deseas eliminar este empleado?');
-    if (confirmado) {
-      setEmpleados((prev) => prev.filter((e) => e.id !== id));
+    fetchEmpleados();
+  }, []);
+
+  // Crear o actualizar empleado
+  const agregarOEditarEmpleado = async (empleado) => {
+    try {
+      if (empleado.id) {
+        // Editar
+        const res = await API.put(`/empleados/${empleado.id}`, empleado);
+        setEmpleados((prev) =>
+          prev.map((e) => (e.id === empleado.id ? res.data : e))
+        );
+      } else {
+        // Crear
+        const res = await API.post('/empleados', empleado);
+        setEmpleados((prev) => [...prev, res.data]);
+      }
+
+      setMostrarFormulario(false);
+    } catch (error) {
+      console.error('Error al guardar empleado:', error);
     }
   };
 
+  // Eliminar empleado
+const eliminarEmpleado = async (id) => {
+  const confirmado = window.confirm("¿Deseas eliminar este empleado?");
+  if (confirmado) {
+    try {
+      await API.delete(`/empleados/${id}`);
+      setEmpleados((prev) => prev.filter((e) => e.id !== id));
+    } catch (error) {
+      console.error("Error al eliminar empleado:", error);
+    }
+  }
+};
+
+
+  // Abrir formulario para agregar
   const abrirFormularioAgregar = () => {
     setEmpleadoEditando(null);
     setMostrarFormulario(true);
   };
 
+  // Abrir formulario para editar
   const abrirFormularioEditar = (empleado) => {
     setEmpleadoEditando(empleado);
     setMostrarFormulario(true);
