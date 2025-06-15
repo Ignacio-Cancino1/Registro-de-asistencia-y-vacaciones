@@ -1,52 +1,78 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import API from '../services/api';
 import { useAuth } from '../context/useAuth';
+import VacacionesForm from '../components/VacacionesForm';
+import VacacionesTable from '../components/VacacionesTable';
 
 export default function Vacaciones() {
-  const [solicitudes, setSolicitudes] = useState([
-    { id: 1, empleado: 'Juan', inicio: '2025-06-10', fin: '2025-06-15', estado: 'Pendiente' },
-    { id: 2, empleado: 'Ana', inicio: '2025-07-01', fin: '2025-07-05', estado: 'Aprobada' },
-  ]);
-
   const { rol } = useAuth();
+  const [solicitudes, setSolicitudes] = useState([]);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
-  const aprobarSolicitud = (id) => {
-    setSolicitudes(solicitudes.map(s => s.id === id ? { ...s, estado: 'Aprobada' } : s));
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const endpoint = rol === 'admin' ? '/vacaciones' : '/mis-vacaciones';
+        const res = await API.get(endpoint);
+        setSolicitudes(res.data);
+      } catch (err) {
+        console.error('Error al cargar solicitudes:', err);
+      }
+    };
+    fetchData();
+  }, [rol]);
+
+  const handleSolicitud = async (datos) => {
+    try {
+      const payload = {
+        fecha_inicio: datos.fechaInicio,
+        fecha_fin: datos.fechaFin,
+        ...(rol === 'admin' && { empleado_id: datos.empleado_id }),
+      };
+
+      const endpoint = rol === 'admin' ? '/vacaciones' : '/solicitar-vacaciones';
+      const res = await API.post(endpoint, payload);
+
+      // Como admin no devuelve el objeto, solo mensaje, puedes hacer otro GET si es necesario
+      setSolicitudes((prev) => [...prev, res.data || payload]);
+      setMostrarFormulario(false);
+    } catch (err) {
+      console.error('Error al registrar vacaciones:', err);
+    }
   };
 
-  const rechazarSolicitud = (id) => {
-    setSolicitudes(solicitudes.map(s => s.id === id ? { ...s, estado: 'Rechazada' } : s));
+  const actualizarEstado = async (id, nuevoEstado) => {
+    try {
+      await API.put(`/vacaciones/${id}`, { estado: nuevoEstado });
+      setSolicitudes((prev) =>
+        prev.map((sol) => (sol.id === id ? { ...sol, estado: nuevoEstado } : sol))
+      );
+    } catch (err) {
+      console.error('Error al actualizar estado:', err);
+    }
   };
 
   return (
     <div>
       <h2>Solicitudes de Vacaciones</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Empleado</th>
-            <th>Inicio</th>
-            <th>Fin</th>
-            <th>Estado</th>
-            {rol === 'admin' && <th>Acciones</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {solicitudes.map((s) => (
-            <tr key={s.id}>
-              <td>{s.empleado}</td>
-              <td>{s.inicio}</td>
-              <td>{s.fin}</td>
-              <td>{s.estado}</td>
-              {rol === 'admin' && (
-                <td>
-                  <button onClick={() => aprobarSolicitud(s.id)}>Aprobar</button>
-                  <button onClick={() => rechazarSolicitud(s.id)}>Rechazar</button>
-                </td>
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+
+      <button onClick={() => setMostrarFormulario(true)}>
+        ➕ {rol === 'admin' ? 'Registrar Solicitud' : 'Solicitar Vacaciones'}
+      </button>
+
+      {mostrarFormulario && (
+        <VacacionesForm
+          onSubmit={handleSolicitud}
+          onClose={() => setMostrarFormulario(false)}
+          esAdmin={rol === 'admin'}
+        />
+      )}
+
+      <VacacionesTable
+        solicitudes={solicitudes}
+        onActualizarEstado={actualizarEstado}
+        esAdmin={rol === 'admin'}
+      />
     </div>
   );
 }
