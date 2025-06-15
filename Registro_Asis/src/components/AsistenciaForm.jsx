@@ -1,24 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import API from '../services/api';
+import { useAuth } from '../context/useAuth';
 import './AsistenciaForm.css';
 
 export default function AsistenciaForm({ onAgregar, onClose }) {
-  const [nombre, setNombre] = useState('');
   const [fecha, setFecha] = useState('');
   const [horaEntrada, setHoraEntrada] = useState('');
   const [horaSalida, setHoraSalida] = useState('');
+  const [empleadoId, setEmpleadoId] = useState('');
+  const [empleados, setEmpleados] = useState([]);
+  const { rol } = useAuth();
+
+  useEffect(() => {
+    if (rol === 'admin') {
+      API.get('/empleados')
+        .then((res) => setEmpleados(res.data))
+        .catch((err) => console.error('Error al cargar empleados:', err));
+    }
+  }, [rol]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
     const nuevoRegistro = {
-      nombre,
       fecha,
       horaEntrada,
       horaSalida,
+      ...(rol === 'admin' && { empleado_id: empleadoId }),
     };
 
     onAgregar(nuevoRegistro);
-    onClose();
   };
 
   return (
@@ -26,13 +37,21 @@ export default function AsistenciaForm({ onAgregar, onClose }) {
       <div className="modal-content">
         <h2>Registrar Asistencia</h2>
         <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            placeholder="Nombre del empleado"
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            required
-          />
+          {rol === 'admin' && (
+            <select
+              value={empleadoId}
+              onChange={(e) => setEmpleadoId(e.target.value)}
+              required
+            >
+              <option value="">Seleccionar Empleado</option>
+              {empleados.map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.nombre}
+                </option>
+              ))}
+            </select>
+          )}
+
           <input
             type="date"
             value={fecha}

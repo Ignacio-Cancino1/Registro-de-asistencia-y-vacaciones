@@ -69,3 +69,26 @@ def mis_asistencias():
 
     asistencias = Asistencia.query.filter_by(empleado_id=empleado.id).all()
     return jsonify([a.to_dict() for a in asistencias])
+
+# Ruta para empleados: registrar su propia asistencia
+@asistencia_bp.route('/api/mis-asistencias', methods=['POST'])
+@jwt_required()
+@role_required("empleado")
+def registrar_mi_asistencia():
+    user_id = get_jwt_identity()
+    empleado = Empleado.query.filter_by(usuario_id=user_id).first()
+
+    if not empleado:
+        return jsonify({"msg": "Empleado no encontrado"}), 404
+
+    data = request.get_json()
+    nueva = Asistencia(
+        empleado_id=empleado.id,
+        fecha=datetime.strptime(data.get("fecha"), "%Y-%m-%d").date(),
+        hora_entrada=datetime.strptime(data.get("hora_entrada"), "%H:%M").time(),
+        hora_salida=datetime.strptime(data.get("hora_salida"), "%H:%M").time() if data.get("hora_salida") else None,
+    )
+
+    db.session.add(nueva)
+    db.session.commit()
+    return jsonify(nueva.to_dict()), 201

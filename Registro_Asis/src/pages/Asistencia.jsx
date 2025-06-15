@@ -1,45 +1,77 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import API from '../services/api';
 import { useAuth } from '../context/useAuth';
+import AsistenciaForm from '../components/AsistenciaForm';
+import AsistenciaTable from '../components/AsistenciaTable';
 
 export default function Asistencia() {
-  const [asistencias, setAsistencias] = useState([
-    { id: 1, fecha: '2025-06-01', hora: '08:00', observacion: 'Entrada' },
-    { id: 2, fecha: '2025-06-01', hora: '18:00', observacion: 'Salida' },
-  ]);
-
+  const [asistencias, setAsistencias] = useState([]);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const { rol } = useAuth();
 
-  const handleEliminar = (id) => {
-    setAsistencias(asistencias.filter((a) => a.id !== id));
+  useEffect(() => {
+    const fetchAsistencias = async () => {
+      try {
+        const res =
+          rol === 'admin'
+            ? await API.get('/asistencias')
+            : await API.get('/mis-asistencias');
+        setAsistencias(res.data);
+      } catch (err) {
+        console.error('Error al cargar asistencias:', err);
+      }
+    };
+    fetchAsistencias();
+  }, [rol]);
+
+  const handleAgregar = async (registro) => {
+    try {
+      const payload = {
+        fecha: registro.fecha,
+        hora_entrada: registro.horaEntrada,
+        hora_salida: registro.horaSalida,
+        ...(rol === 'admin' && { empleado_id: registro.empleado_id }),
+      };
+
+      const res =
+        rol === 'admin'
+          ? await API.post('/asistencias', payload)
+          : await API.post('/mis-asistencias', payload);
+
+      setAsistencias((prev) => [...prev, res.data]);
+      setMostrarFormulario(false);
+    } catch (err) {
+      console.error('Error al registrar asistencia:', err);
+    }
+  };
+
+  const handleEliminar = async (id) => {
+    const confirmado = window.confirm('¿Eliminar esta asistencia?');
+    if (confirmado) {
+      try {
+        await API.delete(`/asistencias/${id}`);
+        setAsistencias((prev) => prev.filter((a) => a.id !== id));
+      } catch (err) {
+        console.error('Error al eliminar:', err);
+      }
+    }
   };
 
   return (
     <div>
       <h2>Registros de Asistencia</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Fecha</th>
-            <th>Hora</th>
-            <th>Observación</th>
-            {rol === 'admin' && <th>Acciones</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {asistencias.map((a) => (
-            <tr key={a.id}>
-              <td>{a.fecha}</td>
-              <td>{a.hora}</td>
-              <td>{a.observacion}</td>
-              {rol === 'admin' && (
-                <td>
-                  <button onClick={() => handleEliminar(a.id)}>Eliminar</button>
-                </td>
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+
+      <button onClick={() => setMostrarFormulario(true)}>➕ Registrar Asistencia</button>
+
+      {mostrarFormulario && (
+        <AsistenciaForm
+          onAgregar={handleAgregar}
+          onClose={() => setMostrarFormulario(false)}
+          esAdmin={rol === 'admin'}
+        />
+      )}
+
+      <AsistenciaTable registros={asistencias} onEliminar={handleEliminar} esAdmin={rol === 'admin'} />
     </div>
   );
 }
