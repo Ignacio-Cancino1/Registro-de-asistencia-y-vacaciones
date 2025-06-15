@@ -14,6 +14,7 @@ from app.utils.export_excel import (
     generar_excel_ausencias,
     generar_excel_cumplimiento
 )
+from app.utils.export_pdf import generar_pdf
 
 
 reportes_bp = Blueprint('reportes_bp', __name__)
@@ -281,3 +282,116 @@ def exportar_cumplimiento():
         as_attachment=True,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
+@reportes_bp.route('/api/reportes/asistencias/pdf', methods=['GET'])
+@jwt_required()
+@role_required("admin")
+def exportar_asistencias_pdf():
+    asistencias = Asistencia.query.all()
+    data = [
+        [a.fecha.isoformat(), a.hora_entrada, a.hora_salida, a.empleado_id]
+        for a in asistencias
+    ]
+    headers = ["Fecha", "Entrada", "Salida", "Empleado ID"]
+    pdf = generar_pdf("Reporte de Asistencias", headers, data)
+    return send_file(pdf, download_name="reporte_asistencias.pdf", as_attachment=True)
+
+
+@reportes_bp.route('/api/reportes/vacaciones/pdf', methods=['GET'])
+@jwt_required()
+@role_required("admin")
+def exportar_vacaciones_pdf():
+    vacaciones = Vacaciones.query.all()
+    data = [
+        [v.fecha_inicio, v.fecha_fin, v.estado, v.empleado_id]
+        for v in vacaciones
+    ]
+    headers = ["Inicio", "Fin", "Estado", "Empleado ID"]
+    pdf = generar_pdf("Reporte de Vacaciones", headers, data)
+    return send_file(pdf, download_name="reporte_vacaciones.pdf", as_attachment=True)
+
+
+@reportes_bp.route('/api/reportes/ausencias/pdf', methods=['GET'])
+@jwt_required()
+@role_required("admin")
+def exportar_ausencias_pdf():
+    empleado_id = request.args.get('empleado_id', type=int)
+    fecha_inicio = request.args.get('fecha_inicio')
+    fecha_fin = request.args.get('fecha_fin')
+
+    if not (empleado_id and fecha_inicio and fecha_fin):
+        return jsonify({"msg": "Faltan parámetros requeridos"}), 400
+
+    try:
+        inicio = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
+        fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+    except ValueError:
+        return jsonify({"msg": "Fechas inválidas"}), 400
+
+    fechas_habiles = [
+        inicio + timedelta(days=i) for i in range((fin - inicio).days + 1)
+        if (inicio + timedelta(days=i)).weekday() < 5
+    ]
+    asistencias = Asistencia.query.filter_by(empleado_id=empleado_id)\
+        .filter(Asistencia.fecha.between(inicio, fin)).all()
+    fechas_asistidas = {a.fecha for a in asistencias}
+    vacaciones = Vacaciones.query.filter_by(empleado_id=empleado_id, estado='aprobado')\
+        .filter(Vacaciones.fecha_inicio <= fin, Vacaciones.fecha_fin >= inicio).all()
+    fechas_vacaciones = set()
+    for v in vacaciones:
+        fechas_vacaciones.update([
+            v.fecha_inicio + timedelta(days=i) for i in range((v.fecha_fin - v.fecha_inicio).days + 1)
+        ])
+
+    ausencias = [f for f in fechas_habiles if f not in fechas_asistidas and f not in fechas_vacaciones]
+    data = [[f.isoformat()] for f in ausencias]
+    headers = ["Fecha de Ausencia"]
+    pdf = generar_pdf("Reporte de Ausencias", headers, data)
+    return send_file(pdf, download_name="reporte_ausencias.pdf", as_attachment=True)
+
+
+@reportes_bp.route('/api/reportes/cumplimiento/pdf', methods=['GET'])
+@jwt_required()
+@role_required("admin")
+def exportar_cumplimiento_pdf():
+    empleado_id = request.args.get('empleado_id')
+    fecha_inicio = request.args.get('fecha_inicio')
+    fecha_fin = request.args.get('fecha_fin')
+
+    if not (empleado_id and fecha_inicio and fecha_fin):
+        return jsonify({"msg": "Faltan parámetros requeridos"}), 400
+
+    try:
+        inicio = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
+        fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+    except ValueError:
+        return jsonify({"msg": "Fechas inválidas"}), 400
+
+    asistencias = Asistencia.query.filter(
+        Asistencia.empleado_id == empleado_id,
+        Asistencia.fecha.between(inicio, fin)
+    ).all()
+
+    resultados = []
+    for asistencia in asistencias:
+        if asistencia.hora_entrada and asistencia.hora_salida:
+            horas = (
+                datetime.combine(asistencia.fecha, asistencia.hora_salida) -
+                datetime.combine(asistencia.fecha, asistencia.hora_entrada)
+            ).seconds / 3600
+            cumple = "Sí" if horas >= 8 else "No"
+        else:
+            horas = 0
+            cumple = "No"
+
+        resultados.append([
+            asistencia.fecha.isoformat(),
+            asistencia.hora_entrada.isoformat() if asistencia.hora_entrada else None,
+            asistencia.hora_salida.isoformat() if asistencia.hora_salida else None,
+            round(horas, 2),
+            cumple
+        ])
+
+    headers = ["Fecha", "Entrada", "Salida", "Horas", "Cumple"]
+    pdf = generar_pdf("Reporte de Cumplimiento", headers, resultados)
+    return send_file(pdf, download_name="reporte_cumplimiento.pdf", as_attachment=True)
