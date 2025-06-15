@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
+import API from '../services/api'; // usamos el backend real
 import './Login.css';
 
 export default function Login() {
@@ -10,21 +11,26 @@ export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const usuariosSimulados = [
-    { correo: 'admin@empresa.com', clave: '123456', rol: 'admin' },
-    { correo: 'empleado@empresa.com', clave: '123456', rol: 'empleado' },
-  ];
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const user = usuariosSimulados.find(
-      (u) => u.correo === correo && u.clave === clave
-    );
+    setError('');
 
-    if (user) {
-      login(user.rol);
-      navigate('/dashboard');
-    } else {
+    try {
+      const res = await API.post('/login', { correo, clave });
+
+      const { token, rol } = res.data;
+
+      localStorage.setItem('token', token);
+      localStorage.setItem('rol', rol);
+
+      login(rol);
+
+      if (rol === 'admin') {
+        navigate('/dashboard');
+      } else {
+        navigate('/empleado/dashboard');
+      }
+    } catch (err) {
       setError('Correo o contraseña incorrectos');
     }
   };
