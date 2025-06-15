@@ -1,33 +1,30 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-
-const resumen = {
-  asistenciasHoy: 15,
-  ausenciasHoy: 2,
-  vacacionesActivas: 3,
-  horasPromedioSemana: 38,
-};
-
-const eventosProximos = [
-  { empleado: 'Ana', tipo: 'Vacaciones', desde: '10/06/2025', hasta: '14/06/2025' },
-  { empleado: 'Carlos', tipo: 'Vacaciones', desde: '15/06/2025', hasta: '18/06/2025' },
-];
-
-const resumenAsistenciaMes = [
-  { name: 'Asistencias', value: 120 },
-  { name: 'Ausencias', value: 20 },
-  { name: 'Vacaciones', value: 10 },
-];
-
-const notificaciones = [
-  'Empleado Pedro no registró asistencia hoy.',
-  'Empleado Ana ha solicitado vacaciones para la próxima semana.',
-  'Turno del empleado Luis aún no ha sido confirmado.',
-];
+import API from '../services/api';
 
 const COLORS = ['#2ecc71', '#e74c3c', '#f1c40f'];
 
 export default function Dashboard() {
+  const [resumen, setResumen] = useState(null);
+  const [eventos, setEventos] = useState([]);
+  const [notificaciones, setNotificaciones] = useState([]);
+
+  useEffect(() => {
+    API.get('/dashboard/resumen').then(res => setResumen(res.data));
+    API.get('/dashboard/eventos').then(res => setEventos(res.data));
+    API.get('/dashboard/notificaciones')
+      .then(res => setNotificaciones(res.data))
+      .catch(() => setNotificaciones([])); // Para rol empleado
+  }, []);
+
+  if (!resumen) return <p>Cargando...</p>;
+
+  const resumenAsistenciaMes = [
+    { name: 'Asistencias', value: 120 },
+    { name: 'Ausencias', value: 20 },
+    { name: 'Vacaciones', value: 10 },
+  ];
+
   return (
     <div>
       <h2>Panel de Control</h2>
@@ -40,21 +37,13 @@ export default function Dashboard() {
         <div style={cardStyle}>⏱️ Promedio semanal: {resumen.horasPromedioSemana}h</div>
       </div>
 
-      {/* Gráfico resumen mensual */}
+      {/* Gráfico (aún con datos mock) */}
       <div style={{ width: '100%', height: 300, marginBottom: '2rem' }}>
         <ResponsiveContainer>
           <PieChart>
-            <Pie
-              data={resumenAsistenciaMes}
-              dataKey="value"
-              nameKey="name"
-              cx="50%"
-              cy="50%"
-              outerRadius={100}
-              label
-            >
+            <Pie data={resumenAsistenciaMes} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
               {resumenAsistenciaMes.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <Cell key={index} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
             <Tooltip />
@@ -63,7 +52,7 @@ export default function Dashboard() {
         </ResponsiveContainer>
       </div>
 
-      {/* Tabla de eventos */}
+      {/* Eventos */}
       <h3>Próximos eventos</h3>
       <table style={tableStyle}>
         <thead>
@@ -75,7 +64,7 @@ export default function Dashboard() {
           </tr>
         </thead>
         <tbody>
-          {eventosProximos.map((ev, i) => (
+          {eventos.map((ev, i) => (
             <tr key={i}>
               <td>{ev.empleado}</td>
               <td>{ev.tipo}</td>

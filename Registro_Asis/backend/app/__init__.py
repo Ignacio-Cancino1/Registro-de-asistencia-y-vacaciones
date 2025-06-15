@@ -39,6 +39,7 @@ def create_app():
     from app.routes.asistencia import asistencia_bp
     from app.routes.vacaciones import vacaciones_bp
     from app.routes.reportes import reportes_bp
+    from app.routes.dashboard import dashboard_bp
 
 
     app.register_blueprint(auth_bp)
@@ -47,6 +48,7 @@ def create_app():
     app.register_blueprint(asistencia_bp)
     app.register_blueprint(vacaciones_bp)
     app.register_blueprint(reportes_bp)
+    app.register_blueprint(dashboard_bp)
 
 
     return app

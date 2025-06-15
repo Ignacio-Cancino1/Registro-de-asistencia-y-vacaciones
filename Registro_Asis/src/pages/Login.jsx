@@ -30,7 +30,7 @@ export default function Login() {
       } else {
         navigate('/empleado/dashboard');
       }
-    } catch (err) {
+    } catch (error) {
       setError('Correo o contraseña incorrectos');
     }
   };
