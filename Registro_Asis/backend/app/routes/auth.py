@@ -24,13 +24,11 @@ def registrar_usuario():
     data = request.get_json()
     correo = data.get('correo')
     clave = data.get('clave')
-    rol = data.get('rol', 'empleado')  # por defecto, nuevo usuario será empleado
+    rol = data.get('rol', 'empleado')
 
-    # Validación básica
     if not correo or not clave:
         return jsonify({"msg": "Correo y clave son obligatorios"}), 400
 
-    # Verifica si ya existe un usuario con ese correo
     if Usuario.query.filter_by(correo=correo).first():
         return jsonify({"msg": "Ya existe un usuario con ese correo"}), 409
 
@@ -40,6 +38,7 @@ def registrar_usuario():
 
     return jsonify({"msg": "Usuario registrado exitosamente"}), 201
 
-    @auth_bp.route("/", methods=["GET"])
+# ✅ Esta ruta ahora está correctamente alineada
+@auth_bp.route("/", methods=["GET"])
 def index():
     return {"mensaje": "API de Registro de Asistencia y Vacaciones funcionando ✅"}
