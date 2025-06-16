@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import API from '../services/api';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -6,84 +7,97 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
 export default function ReporteCumplimiento() {
-  const todosLosDatos = [
-    { empleado: 'Juan', mes: 'Enero', fecha: new Date(2024, 0, 3), puntualidad: 'Sí', horasTrabajadas: 8 },
-    { empleado: 'Ana', mes: 'Enero', fecha: new Date(2024, 0, 4), puntualidad: 'No', horasTrabajadas: 6 },
-    { empleado: 'Carlos', mes: 'Febrero', fecha: new Date(2024, 1, 6), puntualidad: 'Sí', horasTrabajadas: 9 },
-    { empleado: 'Juan', mes: 'Febrero', fecha: new Date(2024, 1, 10), puntualidad: 'Sí', horasTrabajadas: 8 },
-  ];
-
-  const [mesSeleccionado, setMesSeleccionado] = useState('Todos');
-  const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState('Todos');
+  const [empleados, setEmpleados] = useState([]);
+  const [empleadoId, setEmpleadoId] = useState('');
   const [fechaInicio, setFechaInicio] = useState(null);
   const [fechaFin, setFechaFin] = useState(null);
+  const [datos, setDatos] = useState([]);
 
-  const datosFiltrados = todosLosDatos.filter(d => {
-    const coincideMes = mesSeleccionado === 'Todos' || d.mes === mesSeleccionado;
-    const coincideEmpleado = empleadoSeleccionado === 'Todos' || d.empleado === empleadoSeleccionado;
-    const coincideFecha =
-      (!fechaInicio || d.fecha >= fechaInicio) &&
-      (!fechaFin || d.fecha <= fechaFin);
-    return coincideMes && coincideEmpleado && coincideFecha;
-  });
+  // Obtener lista de empleados
+  useEffect(() => {
+    const fetchEmpleados = async () => {
+      try {
+        const res = await API.get('/empleados');
+        setEmpleados(res.data);
+      } catch (error) {
+        console.error('Error al cargar empleados:', error);
+      }
+    };
+    fetchEmpleados();
+  }, []);
 
+  // Buscar cumplimiento desde backend
+  const buscarCumplimiento = async () => {
+    if (!empleadoId || !fechaInicio || !fechaFin) {
+      alert('Completa todos los campos');
+      return;
+    }
+
+    try {
+      const res = await API.get('/reportes/cumplimiento', {
+        params: {
+          empleado_id: empleadoId,
+          fecha_inicio: fechaInicio.toISOString().split('T')[0],
+          fecha_fin: fechaFin.toISOString().split('T')[0],
+        },
+      });
+      setDatos(res.data);
+    } catch (err) {
+      console.error('Error al cargar cumplimiento:', err);
+    }
+  };
+
+  // Exportar a Excel
   const exportarExcel = () => {
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(datosFiltrados.map(d => ({
-      ...d,
-      fecha: d.fecha.toLocaleDateString()
-    })));
-    XLSX.utils.book_append_sheet(wb, ws, 'Reporte Cumplimiento');
+    const ws = XLSX.utils.json_to_sheet(datos);
+    XLSX.utils.book_append_sheet(wb, ws, 'Cumplimiento');
     XLSX.writeFile(wb, 'reporte_cumplimiento.xlsx');
   };
 
+  // Exportar a PDF
   const exportarPDF = () => {
     const doc = new jsPDF();
     doc.text('Reporte de Cumplimiento de Horario', 14, 15);
-    const columnas = ['Empleado', 'Mes', 'Fecha', 'Puntualidad', 'Horas Trabajadas'];
-    const filas = datosFiltrados.map(d => [d.empleado, d.mes, d.fecha.toLocaleDateString(), d.puntualidad, d.horasTrabajadas]);
-
     autoTable(doc, {
-      head: [columnas],
-      body: filas,
+      head: [['Fecha', 'Entrada', 'Salida', 'Horas', 'Cumple']],
+      body: datos.map(d => [
+        d.fecha,
+        d.hora_entrada || '-',
+        d.hora_salida || '-',
+        d.horas_trabajadas,
+        d.cumple_jornada
+      ]),
       startY: 25,
       theme: 'striped',
-      headStyles: { fillColor: [22, 160, 133] },
     });
-
     doc.save('reporte_cumplimiento.pdf');
   };
-
-  const mesesUnicos = [...new Set(todosLosDatos.map(d => d.mes))];
-  const empleadosUnicos = [...new Set(todosLosDatos.map(d => d.empleado))];
 
   return (
     <div>
       <h3>Reporte de Cumplimiento de Horario</h3>
 
       <div style={{ marginBottom: '1rem' }}>
-        <label>Mes: </label>
-        <select value={mesSeleccionado} onChange={(e) => setMesSeleccionado(e.target.value)} style={{ marginRight: '1rem' }}>
-          <option value="Todos">Todos</option>
-          {mesesUnicos.map((m, i) => (
-            <option key={i} value={m}>{m}</option>
-          ))}
-        </select>
-
         <label>Empleado: </label>
-        <select value={empleadoSeleccionado} onChange={(e) => setEmpleadoSeleccionado(e.target.value)} style={{ marginRight: '1rem' }}>
-          <option value="Todos">Todos</option>
-          {empleadosUnicos.map((e, i) => (
-            <option key={i} value={e}>{e}</option>
+        <select
+          value={empleadoId}
+          onChange={(e) => setEmpleadoId(e.target.value)}
+          style={{ marginRight: '1rem' }}
+        >
+          <option value="">Seleccione</option>
+          {empleados.map(e => (
+            <option key={e.id} value={e.id}>
+              {e.nombre}
+            </option>
           ))}
         </select>
 
         <label>Desde: </label>
         <DatePicker
           selected={fechaInicio}
-          onChange={date => setFechaInicio(date)}
-          dateFormat="dd/MM/yyyy"
-          isClearable
+          onChange={setFechaInicio}
+          dateFormat="yyyy-MM-dd"
           placeholderText="Inicio"
           style={{ marginRight: '1rem' }}
         />
@@ -91,11 +105,14 @@ export default function ReporteCumplimiento() {
         <label>Hasta: </label>
         <DatePicker
           selected={fechaFin}
-          onChange={date => setFechaFin(date)}
-          dateFormat="dd/MM/yyyy"
-          isClearable
+          onChange={setFechaFin}
+          dateFormat="yyyy-MM-dd"
           placeholderText="Fin"
         />
+
+        <button onClick={buscarCumplimiento} style={{ marginLeft: '1rem' }}>
+          Buscar
+        </button>
       </div>
 
       <div style={{ marginBottom: '1rem' }}>
@@ -106,21 +123,21 @@ export default function ReporteCumplimiento() {
       <table>
         <thead>
           <tr>
-            <th>Empleado</th>
-            <th>Mes</th>
             <th>Fecha</th>
-            <th>Puntualidad</th>
+            <th>Hora Entrada</th>
+            <th>Hora Salida</th>
             <th>Horas Trabajadas</th>
+            <th>¿Cumple Jornada?</th>
           </tr>
         </thead>
         <tbody>
-          {datosFiltrados.map((d, i) => (
+          {datos.map((d, i) => (
             <tr key={i}>
-              <td>{d.empleado}</td>
-              <td>{d.mes}</td>
-              <td>{d.fecha.toLocaleDateString()}</td>
-              <td>{d.puntualidad}</td>
-              <td>{d.horasTrabajadas}</td>
+              <td>{d.fecha}</td>
+              <td>{d.hora_entrada || '-'}</td>
+              <td>{d.hora_salida || '-'}</td>
+              <td>{d.horas_trabajadas}</td>
+              <td>{d.cumple_jornada}</td>
             </tr>
           ))}
         </tbody>

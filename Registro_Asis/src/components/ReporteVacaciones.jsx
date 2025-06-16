@@ -1,40 +1,67 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import API from '../services/api';
 
 export default function ReporteVacaciones() {
-  const todosLosDatos = [
-    { empleado: 'Juan', mes: 'Enero', fecha: new Date(2024, 0, 3), diasTomados: 2 },
-    { empleado: 'Ana', mes: 'Enero', fecha: new Date(2024, 0, 10), diasTomados: 1 },
-    { empleado: 'Carlos', mes: 'Febrero', fecha: new Date(2024, 1, 5), diasTomados: 3 },
-    { empleado: 'Juan', mes: 'Febrero', fecha: new Date(2024, 1, 15), diasTomados: 1 },
-    { empleado: 'Ana', mes: 'Marzo', fecha: new Date(2024, 2, 1), diasTomados: 4 },
-  ];
-
+  const [datos, setDatos] = useState([]);
+  const [empleados, setEmpleados] = useState([]);
   const [mesSeleccionado, setMesSeleccionado] = useState('Todos');
   const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState('Todos');
   const [fechaInicio, setFechaInicio] = useState(null);
   const [fechaFin, setFechaFin] = useState(null);
 
-  const datosFiltrados = todosLosDatos.filter(d => {
-    const coincideMes = mesSeleccionado === 'Todos' || d.mes === mesSeleccionado;
-    const coincideEmpleado = empleadoSeleccionado === 'Todos' || d.empleado === empleadoSeleccionado;
-    const coincideFecha =
-      (!fechaInicio || d.fecha >= fechaInicio) &&
-      (!fechaFin || d.fecha <= fechaFin);
+  useEffect(() => {
+    const cargarDatos = async () => {
+      try {
+        const [resVacaciones, resEmpleados] = await Promise.all([
+          API.get('/reportes/vacaciones'),
+          API.get('/empleados')
+        ]);
+        setDatos(resVacaciones.data);
+        setEmpleados(resEmpleados.data);
+      } catch (error) {
+        console.error('Error al cargar datos:', error);
+      }
+    };
+    cargarDatos();
+  }, []);
 
-    return coincideMes && coincideEmpleado && coincideFecha;
+  const datosFiltrados = datos.filter((d) => {
+    const fecha = new Date(d.fecha_inicio);
+    const nombreEmpleado = empleados.find(e => e.id === d.empleado_id)?.nombre || 'Desconocido';
+
+    const coincideEmpleado =
+      empleadoSeleccionado === 'Todos' ||
+      nombreEmpleado === empleadoSeleccionado;
+
+    const coincideMes =
+      mesSeleccionado === 'Todos' ||
+      fecha.toLocaleString('default', { month: 'long' }) === mesSeleccionado;
+
+    const coincideFecha =
+      (!fechaInicio || fecha >= fechaInicio) &&
+      (!fechaFin || fecha <= fechaFin);
+
+    return coincideEmpleado && coincideMes && coincideFecha;
   });
 
   const exportarExcel = () => {
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(datosFiltrados.map(d => ({
-      ...d,
-      fecha: d.fecha.toLocaleDateString()
-    })));
+    const ws = XLSX.utils.json_to_sheet(
+      datosFiltrados.map(d => {
+        const empleado = empleados.find(e => e.id === d.empleado_id)?.nombre || 'Desconocido';
+        return {
+          Empleado: empleado,
+          'Fecha Inicio': new Date(d.fecha_inicio).toLocaleDateString(),
+          'Fecha Fin': new Date(d.fecha_fin).toLocaleDateString(),
+          Estado: d.estado
+        };
+      })
+    );
     XLSX.utils.book_append_sheet(wb, ws, 'Reporte Vacaciones');
     XLSX.writeFile(wb, 'reporte_vacaciones.xlsx');
   };
@@ -42,22 +69,30 @@ export default function ReporteVacaciones() {
   const exportarPDF = () => {
     const doc = new jsPDF();
     doc.text('Reporte de Vacaciones', 14, 15);
-    const columnas = ['Empleado', 'Mes', 'Fecha', 'Días Tomados'];
-    const filas = datosFiltrados.map(d => [d.empleado, d.mes, d.fecha.toLocaleDateString(), d.diasTomados]);
+    const columnas = ['Empleado', 'Fecha Inicio', 'Fecha Fin', 'Estado'];
+    const filas = datosFiltrados.map(d => [
+      empleados.find(e => e.id === d.empleado_id)?.nombre || 'Desconocido',
+      new Date(d.fecha_inicio).toLocaleDateString(),
+      new Date(d.fecha_fin).toLocaleDateString(),
+      d.estado
+    ]);
 
     autoTable(doc, {
       head: [columnas],
       body: filas,
       startY: 25,
       theme: 'striped',
-      headStyles: { fillColor: [22, 160, 133] },
+      headStyles: { fillColor: [41, 128, 185] },
     });
 
     doc.save('reporte_vacaciones.pdf');
   };
 
-  const mesesUnicos = [...new Set(todosLosDatos.map(d => d.mes))];
-  const empleadosUnicos = [...new Set(todosLosDatos.map(d => d.empleado))];
+  const mesesUnicos = [...new Set(datos.map(d =>
+    new Date(d.fecha_inicio).toLocaleString('default', { month: 'long' })
+  ))];
+
+  const nombresEmpleados = empleados.map(e => e.nombre);
 
   return (
     <div>
@@ -65,7 +100,7 @@ export default function ReporteVacaciones() {
 
       <div style={{ marginBottom: '1rem' }}>
         <label>Mes: </label>
-        <select value={mesSeleccionado} onChange={(e) => setMesSeleccionado(e.target.value)} style={{ marginRight: '1rem' }}>
+        <select value={mesSeleccionado} onChange={e => setMesSeleccionado(e.target.value)} style={{ marginRight: '1rem' }}>
           <option value="Todos">Todos</option>
           {mesesUnicos.map((m, i) => (
             <option key={i} value={m}>{m}</option>
@@ -73,9 +108,9 @@ export default function ReporteVacaciones() {
         </select>
 
         <label>Empleado: </label>
-        <select value={empleadoSeleccionado} onChange={(e) => setEmpleadoSeleccionado(e.target.value)} style={{ marginRight: '1rem' }}>
+        <select value={empleadoSeleccionado} onChange={e => setEmpleadoSeleccionado(e.target.value)} style={{ marginRight: '1rem' }}>
           <option value="Todos">Todos</option>
-          {empleadosUnicos.map((e, i) => (
+          {nombresEmpleados.map((e, i) => (
             <option key={i} value={e}>{e}</option>
           ))}
         </select>
@@ -109,20 +144,23 @@ export default function ReporteVacaciones() {
         <thead>
           <tr>
             <th>Empleado</th>
-            <th>Mes</th>
-            <th>Fecha</th>
-            <th>Días Tomados</th>
+            <th>Fecha Inicio</th>
+            <th>Fecha Fin</th>
+            <th>Estado</th>
           </tr>
         </thead>
         <tbody>
-          {datosFiltrados.map((d, i) => (
-            <tr key={i}>
-              <td>{d.empleado}</td>
-              <td>{d.mes}</td>
-              <td>{d.fecha.toLocaleDateString()}</td>
-              <td>{d.diasTomados}</td>
-            </tr>
-          ))}
+          {datosFiltrados.map((d, i) => {
+            const empleado = empleados.find(e => e.id === d.empleado_id)?.nombre || 'Desconocido';
+            return (
+              <tr key={i}>
+                <td>{empleado}</td>
+                <td>{new Date(d.fecha_inicio).toLocaleDateString()}</td>
+                <td>{new Date(d.fecha_fin).toLocaleDateString()}</td>
+                <td>{d.estado}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

@@ -1,38 +1,54 @@
-import React, { useState } from 'react';
+// src/components/ReporteAusencias.jsx
+import React, { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import API from '../services/api';
 
 export default function ReporteAusencias() {
-  const todosLosDatos = [
-    { empleado: 'Juan', mes: 'Enero', fecha: new Date(2024, 0, 8), motivo: 'Enfermedad' },
-    { empleado: 'Ana', mes: 'Enero', fecha: new Date(2024, 0, 9), motivo: 'Asunto personal' },
-    { empleado: 'Carlos', mes: 'Febrero', fecha: new Date(2024, 1, 11), motivo: 'Retraso' },
-    { empleado: 'Ana', mes: 'Marzo', fecha: new Date(2024, 2, 5), motivo: 'Sin aviso' },
-  ];
-
-  const [mesSeleccionado, setMesSeleccionado] = useState('Todos');
-  const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState('Todos');
+  const [empleadoId, setEmpleadoId] = useState('');
   const [fechaInicio, setFechaInicio] = useState(null);
   const [fechaFin, setFechaFin] = useState(null);
+  const [ausencias, setAusencias] = useState([]);
+  const [empleados, setEmpleados] = useState([]);
 
-  const datosFiltrados = todosLosDatos.filter(d => {
-    const coincideMes = mesSeleccionado === 'Todos' || d.mes === mesSeleccionado;
-    const coincideEmpleado = empleadoSeleccionado === 'Todos' || d.empleado === empleadoSeleccionado;
-    const coincideFecha =
-      (!fechaInicio || d.fecha >= fechaInicio) &&
-      (!fechaFin || d.fecha <= fechaFin);
-    return coincideMes && coincideEmpleado && coincideFecha;
-  });
+  useEffect(() => {
+    const fetchEmpleados = async () => {
+      try {
+        const res = await API.get('/empleados');
+        setEmpleados(res.data);
+      } catch (err) {
+        console.error('Error cargando empleados:', err);
+      }
+    };
+    fetchEmpleados();
+  }, []);
+
+  const cargarAusencias = async () => {
+    if (!empleadoId || !fechaInicio || !fechaFin) {
+      alert('Selecciona un empleado y rango de fechas');
+      return;
+    }
+
+    try {
+      const params = {
+        empleado_id: empleadoId,
+        fecha_inicio: fechaInicio.toISOString().split('T')[0],
+        fecha_fin: fechaFin.toISOString().split('T')[0],
+      };
+      const res = await API.get('/reportes/ausencias', { params });
+      setAusencias(res.data.ausencias || []);
+    } catch (err) {
+      console.error('Error cargando ausencias:', err);
+    }
+  };
 
   const exportarExcel = () => {
+    const datos = ausencias.map(fecha => ({ Fecha: fecha }));
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(datosFiltrados.map(d => ({
-      ...d,
-      fecha: d.fecha.toLocaleDateString()
-    })));
+    const ws = XLSX.utils.json_to_sheet(datos);
     XLSX.utils.book_append_sheet(wb, ws, 'Reporte Ausencias');
     XLSX.writeFile(wb, 'reporte_ausencias.xlsx');
   };
@@ -40,89 +56,81 @@ export default function ReporteAusencias() {
   const exportarPDF = () => {
     const doc = new jsPDF();
     doc.text('Reporte de Ausencias', 14, 15);
-    const columnas = ['Empleado', 'Mes', 'Fecha', 'Motivo'];
-    const filas = datosFiltrados.map(d => [d.empleado, d.mes, d.fecha.toLocaleDateString(), d.motivo]);
-
     autoTable(doc, {
-      head: [columnas],
-      body: filas,
+      head: [['Fecha de Ausencia']],
+      body: ausencias.map(f => [f]),
       startY: 25,
       theme: 'striped',
       headStyles: { fillColor: [22, 160, 133] },
     });
-
     doc.save('reporte_ausencias.pdf');
   };
-
-  const mesesUnicos = [...new Set(todosLosDatos.map(d => d.mes))];
-  const empleadosUnicos = [...new Set(todosLosDatos.map(d => d.empleado))];
 
   return (
     <div>
       <h3>Reporte de Ausencias</h3>
 
       <div style={{ marginBottom: '1rem' }}>
-        <label>Mes: </label>
-        <select value={mesSeleccionado} onChange={(e) => setMesSeleccionado(e.target.value)} style={{ marginRight: '1rem' }}>
-          <option value="Todos">Todos</option>
-          {mesesUnicos.map((m, i) => (
-            <option key={i} value={m}>{m}</option>
-          ))}
-        </select>
-
         <label>Empleado: </label>
-        <select value={empleadoSeleccionado} onChange={(e) => setEmpleadoSeleccionado(e.target.value)} style={{ marginRight: '1rem' }}>
-          <option value="Todos">Todos</option>
-          {empleadosUnicos.map((e, i) => (
-            <option key={i} value={e}>{e}</option>
+        <select
+          value={empleadoId}
+          onChange={(e) => setEmpleadoId(e.target.value)}
+          style={{ marginRight: '1rem' }}
+        >
+          <option value="">Seleccione</option>
+          {empleados.map(emp => (
+            <option key={emp.id} value={emp.id}>
+              {emp.nombre}
+            </option>
           ))}
         </select>
 
         <label>Desde: </label>
         <DatePicker
           selected={fechaInicio}
-          onChange={date => setFechaInicio(date)}
-          dateFormat="dd/MM/yyyy"
-          isClearable
-          placeholderText="Inicio"
-          style={{ marginRight: '1rem' }}
+          onChange={setFechaInicio}
+          dateFormat="yyyy-MM-dd"
+          placeholderText="Fecha de inicio"
         />
 
-        <label>Hasta: </label>
+        <label style={{ marginLeft: '1rem' }}>Hasta: </label>
         <DatePicker
           selected={fechaFin}
-          onChange={date => setFechaFin(date)}
-          dateFormat="dd/MM/yyyy"
-          isClearable
-          placeholderText="Fin"
+          onChange={setFechaFin}
+          dateFormat="yyyy-MM-dd"
+          placeholderText="Fecha de fin"
         />
+
+        <button onClick={cargarAusencias} style={{ marginLeft: '1rem' }}>
+          Buscar
+        </button>
       </div>
 
-      <div style={{ marginBottom: '1rem' }}>
-        <button onClick={exportarExcel} style={{ marginRight: '1rem' }}>Exportar a Excel</button>
-        <button onClick={exportarPDF}>Exportar a PDF</button>
-      </div>
+      {ausencias.length > 0 && (
+        <>
+          <div style={{ marginBottom: '1rem' }}>
+            <button onClick={exportarExcel} style={{ marginRight: '1rem' }}>
+              Exportar a Excel
+            </button>
+            <button onClick={exportarPDF}>Exportar a PDF</button>
+          </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Empleado</th>
-            <th>Mes</th>
-            <th>Fecha</th>
-            <th>Motivo</th>
-          </tr>
-        </thead>
-        <tbody>
-          {datosFiltrados.map((d, i) => (
-            <tr key={i}>
-              <td>{d.empleado}</td>
-              <td>{d.mes}</td>
-              <td>{d.fecha.toLocaleDateString()}</td>
-              <td>{d.motivo}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha de Ausencia</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ausencias.map((f, i) => (
+                <tr key={i}>
+                  <td>{f}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      )}
     </div>
   );
 }
