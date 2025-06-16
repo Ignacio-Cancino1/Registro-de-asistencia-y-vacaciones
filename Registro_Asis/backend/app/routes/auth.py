@@ -39,3 +39,7 @@ def registrar_usuario():
     db.session.commit()
 
     return jsonify({"msg": "Usuario registrado exitosamente"}), 201
+
+    @auth_bp.route("/", methods=["GET"])
+def index():
+    return {"mensaje": "API de Registro de Asistencia y Vacaciones funcionando ✅"}
