@@ -15,3 +15,13 @@ with app.app_context():
         print("✅ Usuario admin creado")
     else:
         print("✅ Usuario admin ya existe")
+
+with app.app_context():
+    if not Usuario.query.filter_by(correo="empleado1@empresa.com").first():
+        empleado = Usuario(correo="empleado1@empresa.com", clave="123456", rol="empleado")
+        db.session.add(empleado)
+        db.session.commit()
+        print("✅ Usuario empleado creado correctamente")
+    else:
+        print("⚠️ Ya existe un usuario con ese correo")
+
