@@ -6,6 +6,8 @@ from app.utils.decorators import role_required
 from app.models.empleado import Empleado
 from datetime import datetime
 
+# Forzar redeploy: ruta /mis-asistencias incluida
+
 asistencia_bp = Blueprint('asistencia_bp', __name__)
 
 # Ruta protegida solo para admin (ver todas las asistencias)
