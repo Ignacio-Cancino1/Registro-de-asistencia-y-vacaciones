@@ -63,21 +63,40 @@ def obtener_eventos():
 
 @dashboard_bp.route("/api/dashboard/notificaciones", methods=["GET"])
 @jwt_required()
-@role_required("admin")
 def obtener_notificaciones():
-    hoy = date.today()
-    empleados = Empleado.query.all()
-    notificaciones = []
+    user_id = get_jwt_identity()
+    empleado = Empleado.query.filter_by(usuario_id=user_id).first()
 
-    for e in empleados:
-        asistencia = Asistencia.query.filter_by(empleado_id=e.id, fecha=hoy).first()
+    if not empleado:
+        # Es admin, devuelve todas las notificaciones
+        empleados = Empleado.query.all()
+        notificaciones = []
+
+        for e in empleados:
+            asistencia = Asistencia.query.filter_by(empleado_id=e.id, fecha=date.today()).first()
+            if not asistencia:
+                notificaciones.append(f"Empleado {e.nombre} no registró asistencia hoy.")
+
+            vacaciones_pedidas = Vacaciones.query.filter_by(
+                empleado_id=e.id, estado="pendiente"
+            ).first()
+            if vacaciones_pedidas:
+                notificaciones.append(f"Empleado {e.nombre} ha solicitado vacaciones para la próxima semana.")
+        
+        return jsonify(notificaciones)
+    
+    else:
+        # Es empleado, muestra solo su estado
+        notificaciones = []
+        hoy = date.today()
+        asistencia = Asistencia.query.filter_by(empleado_id=empleado.id, fecha=hoy).first()
         if not asistencia:
-            notificaciones.append(f"Empleado {e.nombre} no registró asistencia hoy.")
+            notificaciones.append("No has registrado asistencia hoy.")
 
-        vacaciones_pedidas = Vacaciones.query.filter_by(
-            empleado_id=e.id, estado="pendiente"
+        vacaciones_pendientes = Vacaciones.query.filter_by(
+            empleado_id=empleado.id, estado="pendiente"
         ).first()
-        if vacaciones_pedidas:
-            notificaciones.append(f"Empleado {e.nombre} ha solicitado vacaciones para la próxima semana.")
+        if vacaciones_pendientes:
+            notificaciones.append("Tienes una solicitud de vacaciones pendiente.")
 
-    return jsonify(notificaciones)
+        return jsonify(notificaciones)
