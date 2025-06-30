@@ -30,8 +30,6 @@ def create_app():
     from app.models.asistencia import Asistencia
     from app.models.vacaciones import Vacaciones
 
-
-
     # Registro de Blueprints
     from app.routes.auth import auth_bp
     from app.routes.protegido import protegido_bp
@@ -41,7 +39,6 @@ def create_app():
     from app.routes.reportes import reportes_bp
     from app.routes.dashboard import dashboard_bp
 
-
     app.register_blueprint(auth_bp)
     app.register_blueprint(protegido_bp)
     app.register_blueprint(empleado_bp)
@@ -50,5 +47,8 @@ def create_app():
     app.register_blueprint(reportes_bp)
     app.register_blueprint(dashboard_bp)
 
+    # 🔍 Mostrar rutas registradas para depuración
+    for rule in app.url_map.iter_rules():
+        print(f"🔗 Ruta registrada: {rule}")
 
     return app
