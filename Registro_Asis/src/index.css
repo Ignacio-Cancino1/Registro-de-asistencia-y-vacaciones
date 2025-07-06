@@ -26,8 +26,11 @@ a:hover {
 html, body, #root {
   margin: 0;
   padding: 0;
-  height: 100%;
+  min-height: 100vh;
+  background-color: #1e1e1e;
+  color: #f0f0f0;
 }
+
 
 body {
   display: flex;
