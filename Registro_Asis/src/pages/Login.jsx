@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import API from '../services/api'; // usamos el backend real
+import API from '../services/api';
 import './Login.css';
 
 export default function Login() {
@@ -17,19 +17,13 @@ export default function Login() {
 
     try {
       const res = await API.post('/login', { correo, clave });
-
       const { token, rol } = res.data;
 
       localStorage.setItem('token', token);
       localStorage.setItem('rol', rol);
-
       login(rol);
 
-      if (rol === 'admin') {
-        navigate('/dashboard');
-      } else {
-        navigate('/empleado/dashboard');
-      }
+      navigate(rol === 'admin' ? '/dashboard' : '/empleado/dashboard');
     } catch (error) {
       setError('Correo o contraseña incorrectos');
     }
@@ -41,7 +35,7 @@ export default function Login() {
         <h2>Iniciar Sesión</h2>
         <input
           type="email"
-          placeholder="Correo"
+          placeholder="Correo electrónico"
           value={correo}
           onChange={(e) => setCorreo(e.target.value)}
           required
