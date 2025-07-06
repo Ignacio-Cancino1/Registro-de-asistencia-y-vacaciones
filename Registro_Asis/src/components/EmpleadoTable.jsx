@@ -1,6 +1,8 @@
+import './EmpleadoTable.css';
+
 export default function EmpleadoTable({ empleados, onEliminar, onEditar }) {
   return (
-    <table border="1" cellPadding="8" cellSpacing="0" style={{ marginTop: '1rem' }}>
+    <table className="empleado-table">
       <thead>
         <tr>
           <th>ID</th>
@@ -18,7 +20,7 @@ export default function EmpleadoTable({ empleados, onEliminar, onEditar }) {
             <td>{empleado.cargo}</td>
             <td>{empleado.estado}</td>
             <td>
-              <button onClick={() => onEditar(empleado)}>✏️ Editar</button>{' '}
+              <button onClick={() => onEditar(empleado)}>✏️ Editar</button>
               <button onClick={() => onEliminar(empleado.id)}>🗑️ Eliminar</button>
             </td>
           </tr>
