@@ -1,4 +1,3 @@
-// src/components/AsistenciaTable.jsx
 export default function AsistenciaTable({ registros, onEliminar, esAdmin }) {
   return (
     <table className="table">
