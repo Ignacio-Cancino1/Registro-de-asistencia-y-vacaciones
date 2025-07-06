@@ -1,8 +1,7 @@
-import './AsistenciaTable.css';
-
+// src/components/AsistenciaTable.jsx
 export default function AsistenciaTable({ registros, onEliminar, esAdmin }) {
   return (
-    <table className="asistencia-table">
+    <table className="table">
       <thead>
         <tr>
           <th>Fecha</th>
@@ -19,7 +18,12 @@ export default function AsistenciaTable({ registros, onEliminar, esAdmin }) {
             <td>{item.hora_salida}</td>
             {esAdmin && (
               <td>
-                <button onClick={() => onEliminar(item.id)}>🗑️ Eliminar</button>
+                <button
+                  className="btn-eliminar"
+                  onClick={() => onEliminar(item.id)}
+                >
+                  🗑️ Eliminar
+                </button>
               </td>
             )}
           </tr>
