@@ -1,6 +1,8 @@
+import './AsistenciaTable.css';
+
 export default function AsistenciaTable({ registros, onEliminar, esAdmin }) {
   return (
-    <table border="1" cellPadding="8" cellSpacing="0" style={{ marginTop: '1rem' }}>
+    <table className="asistencia-table">
       <thead>
         <tr>
           <th>Fecha</th>
