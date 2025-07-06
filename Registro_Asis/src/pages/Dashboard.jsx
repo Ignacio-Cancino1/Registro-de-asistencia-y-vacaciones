@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import API from '../services/api';
+import './Dashboard.css'; // 👈 Importa el CSS nuevo
 
 const COLORS = ['#2ecc71', '#e74c3c', '#f1c40f'];
 
@@ -14,7 +15,7 @@ export default function Dashboard() {
     API.get('/dashboard/eventos').then(res => setEventos(res.data));
     API.get('/dashboard/notificaciones')
       .then(res => setNotificaciones(res.data))
-      .catch(() => setNotificaciones([])); // Para rol empleado
+      .catch(() => setNotificaciones([]));
   }, []);
 
   if (!resumen) return <p>Cargando...</p>;
@@ -26,20 +27,20 @@ export default function Dashboard() {
   ];
 
   return (
-    <div>
+    <div className="dashboard-container">
       <h2>Panel de Control</h2>
 
       {/* Tarjetas resumen */}
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-        <div style={cardStyle}>✔️ Asistencias hoy: {resumen.asistenciasHoy}</div>
-        <div style={cardStyle}>❌ Ausencias hoy: {resumen.ausenciasHoy}</div>
-        <div style={cardStyle}>🏖️ Vacaciones activas: {resumen.vacacionesActivas}</div>
-        <div style={cardStyle}>⏱️ Promedio semanal: {resumen.horasPromedioSemana}h</div>
+      <div className="cards-container">
+        <div className="card-summary">✔️ Asistencias hoy: {resumen.asistenciasHoy}</div>
+        <div className="card-summary">❌ Ausencias hoy: {resumen.ausenciasHoy}</div>
+        <div className="card-summary">🏖️ Vacaciones activas: {resumen.vacacionesActivas}</div>
+        <div className="card-summary">⏱️ Promedio semanal: {resumen.horasPromedioSemana}h</div>
       </div>
 
-      {/* Gráfico (aún con datos mock) */}
-      <div style={{ width: '100%', height: 300, marginBottom: '2rem' }}>
-        <ResponsiveContainer>
+      {/* Gráfico circular */}
+      <div className="chart-container">
+        <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie data={resumenAsistenciaMes} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
               {resumenAsistenciaMes.map((entry, index) => (
@@ -52,52 +53,40 @@ export default function Dashboard() {
         </ResponsiveContainer>
       </div>
 
-      {/* Eventos */}
+      {/* Tabla de eventos */}
       <h3>Próximos eventos</h3>
-      <table style={tableStyle}>
-        <thead>
-          <tr>
-            <th>Empleado</th>
-            <th>Tipo</th>
-            <th>Desde</th>
-            <th>Hasta</th>
-          </tr>
-        </thead>
-        <tbody>
-          {eventos.map((ev, i) => (
-            <tr key={i}>
-              <td>{ev.empleado}</td>
-              <td>{ev.tipo}</td>
-              <td>{ev.desde}</td>
-              <td>{ev.hasta}</td>
+      <div className="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Empleado</th>
+              <th>Tipo</th>
+              <th>Desde</th>
+              <th>Hasta</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {eventos.map((ev, i) => (
+              <tr key={i}>
+                <td>{ev.empleado}</td>
+                <td>{ev.tipo}</td>
+                <td>{ev.desde}</td>
+                <td>{ev.hasta}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {/* Notificaciones */}
-      <h3 style={{ marginTop: '2rem' }}>🔔 Notificaciones</h3>
-      <ul>
-        {notificaciones.map((n, i) => (
-          <li key={i}>{n}</li>
-        ))}
-      </ul>
+      <div className="notification-box">
+        <h3>🔔 Notificaciones</h3>
+        <ul>
+          {notificaciones.map((n, i) => (
+            <li key={i}>{n}</li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
-
-const cardStyle = {
-  flex: 1,
-  padding: '1rem',
-  background: '#f7f7f7',
-  borderRadius: '10px',
-  textAlign: 'center',
-  fontWeight: 'bold',
-  boxShadow: '0px 2px 6px rgba(0,0,0,0.1)',
-};
-
-const tableStyle = {
-  width: '100%',
-  borderCollapse: 'collapse',
-  marginTop: '1rem',
-};
