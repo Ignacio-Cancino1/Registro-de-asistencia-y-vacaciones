@@ -8,37 +8,35 @@ export default function VacacionesTable({ vacaciones, esAdmin, onActualizarEstad
           <th>Fecha Inicio</th>
           <th>Fecha Fin</th>
           <th>Estado</th>
-          {esAdmin && <th>Acciones</th>}
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
-        {vacaciones.map((v) => (
-          <tr key={v.id}>
-            <td>{v.fecha_inicio}</td>
-            <td>{v.fecha_fin}</td>
-            <td>{v.estado}</td>
-            {esAdmin && (
-              <td>
-                {v.estado === 'Pendiente' ? (
-                  <>
-                    <button
-                      className="btn-accion"
-                      onClick={() => onActualizarEstado(v.id, 'Aprobado')}
-                    >
-                      ✅ Aprobar
-                    </button>
-                    <button
-                      className="btn-accion"
-                      onClick={() => onActualizarEstado(v.id, 'Rechazado')}
-                    >
-                      ❌ Rechazar
-                    </button>
-                  </>
-                ) : (
-                  <em>—</em>
-                )}
-              </td>
-            )}
+        {vacaciones.map((vac) => (
+          <tr key={vac.id}>
+            <td>{vac.fecha_inicio}</td>
+            <td>{vac.fecha_fin}</td>
+            <td>{vac.estado}</td>
+            <td>
+              {esAdmin && vac.estado === 'pendiente' ? (
+                <>
+                  <button
+                    className="btn-aprobar"
+                    onClick={() => onActualizarEstado(vac.id, 'aprobado')}
+                  >
+                    ✅ Aprobar
+                  </button>
+                  <button
+                    className="btn-rechazar"
+                    onClick={() => onActualizarEstado(vac.id, 'rechazado')}
+                  >
+                    ❌ Rechazar
+                  </button>
+                </>
+              ) : (
+                '—'
+              )}
+            </td>
           </tr>
         ))}
       </tbody>
