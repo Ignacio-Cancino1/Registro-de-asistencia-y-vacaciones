@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import API from '../services/api';
 import { useAuth } from '../context/useAuth';
 import AsistenciaForm from '../components/AsistenciaForm';
-import AsistenciaTable from '../components/AsistenciaTable';
+import '../pages/Asistencia.css'; // ✅ Solo importa su propio CSS aquí
+
 import './AsistenciaTable.css';
 import '../components/Asistencia.css';
 

@@ -1,3 +1,6 @@
+import './AsistenciaTable.css'; // ✅ Correcto (relativo al mismo archivo)
+
+
 export default function AsistenciaTable({ registros, onEliminar, esAdmin }) {
   return (
     <table className="table">
