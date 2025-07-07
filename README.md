@@ -169,7 +169,7 @@ Relaciones clave:
 ### 🔹 Frontend (Vercel)
 
 📍 **URL del sitio**:  
-[https://planificador-de-horarios.vercel.app](https://planificador-de-horarios.vercel.app)
+[https://vercel.com/ignacio-cancinos-projects/registro-de-asistencia-y-vacaciones](https://registro-de-asistencia-y-vacaciones.vercel.app/login)
 
 **Pasos para desplegar en Vercel:**
 
@@ -187,7 +187,7 @@ VITE_API_URL=https://planificador-api.onrender.com/api
 ### 🔸 Backend (Render)
 
 📍 **URL del backend**:  
-[https://planificador-api.onrender.com](https://planificador-api.onrender.com)
+[https://dashboard.render.com/web/srv-d17mn6buibrs73fsfht0](https://registro-de-asistencia-y-vacaciones.onrender.com)
 
 **Pasos para desplegar en Render:**
 
