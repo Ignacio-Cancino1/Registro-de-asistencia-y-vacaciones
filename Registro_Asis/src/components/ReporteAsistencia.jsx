@@ -7,7 +7,6 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import '../pages/Reportes.css';
 
-
 export default function ReporteAsistencia() {
   const [datos, setDatos] = useState([]);
   const [empleados, setEmpleados] = useState([]);
@@ -22,8 +21,10 @@ export default function ReporteAsistencia() {
     try {
       const params = {};
       if (filtros.empleado_id) params.empleado_id = filtros.empleado_id;
-      if (filtros.fecha_inicio) params.fecha_inicio = filtros.fecha_inicio.toISOString().split('T')[0];
-      if (filtros.fecha_fin) params.fecha_fin = filtros.fecha_fin.toISOString().split('T')[0];
+      if (filtros.fecha_inicio)
+        params.fecha_inicio = filtros.fecha_inicio.toISOString().split('T')[0];
+      if (filtros.fecha_fin)
+        params.fecha_fin = filtros.fecha_fin.toISOString().split('T')[0];
 
       const res = await API.get('/reportes/asistencias', { params });
       setDatos(res.data);
@@ -84,15 +85,14 @@ export default function ReporteAsistencia() {
   };
 
   return (
-    <div>
+    <div className="reporte-container">
       <h3>Reporte Mensual de Asistencia</h3>
 
-      <div style={{ marginBottom: '1rem' }}>
+      <div className="reporte-filtros">
         <label>Empleado: </label>
         <select
           value={filtros.empleado_id}
           onChange={(e) => setFiltros({ ...filtros, empleado_id: e.target.value })}
-          style={{ marginRight: '1rem' }}
         >
           <option value="">Todos</option>
           {empleados.map(e => (
@@ -107,7 +107,6 @@ export default function ReporteAsistencia() {
           dateFormat="yyyy-MM-dd"
           isClearable
           placeholderText="Inicio"
-          style={{ marginRight: '1rem' }}
         />
 
         <label>Hasta: </label>
@@ -120,8 +119,8 @@ export default function ReporteAsistencia() {
         />
       </div>
 
-      <div style={{ marginBottom: '1rem' }}>
-        <button onClick={exportarExcel} style={{ marginRight: '1rem' }}>Exportar a Excel</button>
+      <div className="reporte-botones">
+        <button onClick={exportarExcel}>Exportar a Excel</button>
         <button onClick={exportarPDF}>Exportar a PDF</button>
       </div>
 
