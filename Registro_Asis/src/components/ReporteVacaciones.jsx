@@ -1,66 +1,60 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import API from '../services/api';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import API from '../services/api';
+import '../pages/Reportes.css'; // ⬅️ Asegúrate de importar los estilos
 
 export default function ReporteVacaciones() {
   const [datos, setDatos] = useState([]);
   const [empleados, setEmpleados] = useState([]);
-  const [mesSeleccionado, setMesSeleccionado] = useState('Todos');
-  const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState('Todos');
-  const [fechaInicio, setFechaInicio] = useState(null);
-  const [fechaFin, setFechaFin] = useState(null);
+  const [filtros, setFiltros] = useState({
+    empleado_id: '',
+    fecha_inicio: null,
+    fecha_fin: null,
+  });
+
+  const fetchVacaciones = async () => {
+    try {
+      const params = {};
+      if (filtros.empleado_id) params.empleado_id = filtros.empleado_id;
+      if (filtros.fecha_inicio) params.fecha_inicio = filtros.fecha_inicio.toISOString().split('T')[0];
+      if (filtros.fecha_fin) params.fecha_fin = filtros.fecha_fin.toISOString().split('T')[0];
+
+      const res = await API.get('/reportes/vacaciones', { params });
+      setDatos(res.data);
+    } catch (err) {
+      console.error('Error al cargar vacaciones:', err);
+    }
+  };
+
+  const fetchEmpleados = async () => {
+    try {
+      const res = await API.get('/empleados');
+      setEmpleados(res.data);
+    } catch (err) {
+      console.error('Error al cargar empleados:', err);
+    }
+  };
 
   useEffect(() => {
-    const cargarDatos = async () => {
-      try {
-        const [resVacaciones, resEmpleados] = await Promise.all([
-          API.get('/reportes/vacaciones'),
-          API.get('/empleados')
-        ]);
-        setDatos(resVacaciones.data);
-        setEmpleados(resEmpleados.data);
-      } catch (error) {
-        console.error('Error al cargar datos:', error);
-      }
-    };
-    cargarDatos();
+    fetchEmpleados();
   }, []);
 
-  const datosFiltrados = datos.filter((d) => {
-    const fecha = new Date(d.fecha_inicio);
-    const nombreEmpleado = empleados.find(e => e.id === d.empleado_id)?.nombre || 'Desconocido';
-
-    const coincideEmpleado =
-      empleadoSeleccionado === 'Todos' ||
-      nombreEmpleado === empleadoSeleccionado;
-
-    const coincideMes =
-      mesSeleccionado === 'Todos' ||
-      fecha.toLocaleString('default', { month: 'long' }) === mesSeleccionado;
-
-    const coincideFecha =
-      (!fechaInicio || fecha >= fechaInicio) &&
-      (!fechaFin || fecha <= fechaFin);
-
-    return coincideEmpleado && coincideMes && coincideFecha;
-  });
+  useEffect(() => {
+    fetchVacaciones();
+  }, [filtros]);
 
   const exportarExcel = () => {
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(
-      datosFiltrados.map(d => {
-        const empleado = empleados.find(e => e.id === d.empleado_id)?.nombre || 'Desconocido';
-        return {
-          Empleado: empleado,
-          'Fecha Inicio': new Date(d.fecha_inicio).toLocaleDateString(),
-          'Fecha Fin': new Date(d.fecha_fin).toLocaleDateString(),
-          Estado: d.estado
-        };
-      })
+      datos.map(d => ({
+        ...d,
+        fecha_inicio: new Date(d.fecha_inicio).toLocaleDateString(),
+        fecha_fin: new Date(d.fecha_fin).toLocaleDateString(),
+      }))
     );
     XLSX.utils.book_append_sheet(wb, ws, 'Reporte Vacaciones');
     XLSX.writeFile(wb, 'reporte_vacaciones.xlsx');
@@ -70,11 +64,11 @@ export default function ReporteVacaciones() {
     const doc = new jsPDF();
     doc.text('Reporte de Vacaciones', 14, 15);
     const columnas = ['Empleado', 'Fecha Inicio', 'Fecha Fin', 'Estado'];
-    const filas = datosFiltrados.map(d => [
-      empleados.find(e => e.id === d.empleado_id)?.nombre || 'Desconocido',
+    const filas = datos.map(d => [
+      d.nombre_empleado,
       new Date(d.fecha_inicio).toLocaleDateString(),
       new Date(d.fecha_fin).toLocaleDateString(),
-      d.estado
+      d.estado,
     ]);
 
     autoTable(doc, {
@@ -82,61 +76,48 @@ export default function ReporteVacaciones() {
       body: filas,
       startY: 25,
       theme: 'striped',
-      headStyles: { fillColor: [41, 128, 185] },
     });
 
     doc.save('reporte_vacaciones.pdf');
   };
 
-  const mesesUnicos = [...new Set(datos.map(d =>
-    new Date(d.fecha_inicio).toLocaleString('default', { month: 'long' })
-  ))];
-
-  const nombresEmpleados = empleados.map(e => e.nombre);
-
   return (
-    <div>
+    <div className="reporte-container">
       <h3>Reporte de Vacaciones</h3>
 
-      <div style={{ marginBottom: '1rem' }}>
-        <label>Mes: </label>
-        <select value={mesSeleccionado} onChange={e => setMesSeleccionado(e.target.value)} style={{ marginRight: '1rem' }}>
-          <option value="Todos">Todos</option>
-          {mesesUnicos.map((m, i) => (
-            <option key={i} value={m}>{m}</option>
+      <div className="reporte-filtros">
+        <label>Empleado:</label>
+        <select
+          value={filtros.empleado_id}
+          onChange={(e) => setFiltros({ ...filtros, empleado_id: e.target.value })}
+        >
+          <option value="">Todos</option>
+          {empleados.map(e => (
+            <option key={e.id} value={e.id}>{e.nombre}</option>
           ))}
         </select>
 
-        <label>Empleado: </label>
-        <select value={empleadoSeleccionado} onChange={e => setEmpleadoSeleccionado(e.target.value)} style={{ marginRight: '1rem' }}>
-          <option value="Todos">Todos</option>
-          {nombresEmpleados.map((e, i) => (
-            <option key={i} value={e}>{e}</option>
-          ))}
-        </select>
-
-        <label>Desde: </label>
+        <label>Desde:</label>
         <DatePicker
-          selected={fechaInicio}
-          onChange={date => setFechaInicio(date)}
-          dateFormat="dd/MM/yyyy"
+          selected={filtros.fecha_inicio}
+          onChange={(date) => setFiltros({ ...filtros, fecha_inicio: date })}
+          dateFormat="yyyy-MM-dd"
           isClearable
           placeholderText="Inicio"
-          style={{ marginRight: '1rem' }}
         />
 
-        <label>Hasta: </label>
+        <label>Hasta:</label>
         <DatePicker
-          selected={fechaFin}
-          onChange={date => setFechaFin(date)}
-          dateFormat="dd/MM/yyyy"
+          selected={filtros.fecha_fin}
+          onChange={(date) => setFiltros({ ...filtros, fecha_fin: date })}
+          dateFormat="yyyy-MM-dd"
           isClearable
           placeholderText="Fin"
         />
       </div>
 
-      <div style={{ marginBottom: '1rem' }}>
-        <button onClick={exportarExcel} style={{ marginRight: '1rem' }}>Exportar a Excel</button>
+      <div className="reporte-botones">
+        <button onClick={exportarExcel}>Exportar a Excel</button>
         <button onClick={exportarPDF}>Exportar a PDF</button>
       </div>
 
@@ -150,17 +131,14 @@ export default function ReporteVacaciones() {
           </tr>
         </thead>
         <tbody>
-          {datosFiltrados.map((d, i) => {
-            const empleado = empleados.find(e => e.id === d.empleado_id)?.nombre || 'Desconocido';
-            return (
-              <tr key={i}>
-                <td>{empleado}</td>
-                <td>{new Date(d.fecha_inicio).toLocaleDateString()}</td>
-                <td>{new Date(d.fecha_fin).toLocaleDateString()}</td>
-                <td>{d.estado}</td>
-              </tr>
-            );
-          })}
+          {datos.map((d, i) => (
+            <tr key={i}>
+              <td>{d.nombre_empleado}</td>
+              <td>{new Date(d.fecha_inicio).toLocaleDateString()}</td>
+              <td>{new Date(d.fecha_fin).toLocaleDateString()}</td>
+              <td>{d.estado}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
