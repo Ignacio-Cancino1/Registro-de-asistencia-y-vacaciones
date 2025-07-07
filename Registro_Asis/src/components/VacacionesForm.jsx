@@ -1,43 +1,38 @@
-import { useState, useEffect } from 'react';
-import API from '../services/api';
+import { useState } from 'react';
+import './VacacionesForm.css';
 
-export default function VacacionesForm({ onSubmit, onClose, esAdmin }) {
+export default function VacacionesForm({ onGuardar, onClose }) {
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
-  const [empleadoId, setEmpleadoId] = useState('');
-  const [empleados, setEmpleados] = useState([]);
-
-  useEffect(() => {
-    if (esAdmin) {
-      API.get('/empleados').then(res => setEmpleados(res.data)).catch(err => console.error(err));
-    }
-  }, [esAdmin]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({ fechaInicio, fechaFin, empleado_id: empleadoId });
+    onGuardar({
+      fecha_inicio: fechaInicio,
+      fecha_fin: fechaFin,
+    });
   };
 
   return (
     <div className="modal">
       <div className="modal-content">
-        <h3>Formulario de Vacaciones</h3>
+        <h2>Solicitar Vacaciones</h2>
         <form onSubmit={handleSubmit}>
-          {esAdmin && (
-            <select required value={empleadoId} onChange={(e) => setEmpleadoId(e.target.value)}>
-              <option value="">Seleccionar empleado</option>
-              {empleados.map((e) => (
-                <option key={e.id} value={e.id}>{e.nombre}</option>
-              ))}
-            </select>
-          )}
-
-          <input type="date" required value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} />
-          <input type="date" required value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} />
-
-          <div style={{ marginTop: '1rem' }}>
-            <button type="submit">Enviar</button>
-            <button type="button" onClick={onClose} style={{ marginLeft: '1rem' }}>Cancelar</button>
+          <input
+            type="date"
+            value={fechaInicio}
+            onChange={(e) => setFechaInicio(e.target.value)}
+            required
+          />
+          <input
+            type="date"
+            value={fechaFin}
+            onChange={(e) => setFechaFin(e.target.value)}
+            required
+          />
+          <div>
+            <button type="submit">Enviar solicitud</button>
+            <button type="button" onClick={onClose}>Cancelar</button>
           </div>
         </form>
       </div>

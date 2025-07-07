@@ -1,26 +1,42 @@
-export default function VacacionesTable({ solicitudes, onActualizarEstado, esAdmin }) {
+import './VacacionesTable.css';
+
+export default function VacacionesTable({ vacaciones, esAdmin, onActualizarEstado }) {
   return (
-    <table border="1" cellPadding="8" cellSpacing="0" style={{ marginTop: '1rem' }}>
+    <table className="vacaciones-table">
       <thead>
         <tr>
-          <th>Empleado</th>
-          <th>Inicio</th>
-          <th>Fin</th>
+          <th>Fecha Inicio</th>
+          <th>Fecha Fin</th>
           <th>Estado</th>
           {esAdmin && <th>Acciones</th>}
         </tr>
       </thead>
       <tbody>
-        {solicitudes.map((sol) => (
-          <tr key={sol.id}>
-            <td>{sol.nombre || sol.empleado_id}</td>
-            <td>{sol.fecha_inicio}</td>
-            <td>{sol.fecha_fin}</td>
-            <td>{sol.estado}</td>
-            {esAdmin && sol.estado === 'pendiente' && (
+        {vacaciones.map((v) => (
+          <tr key={v.id}>
+            <td>{v.fecha_inicio}</td>
+            <td>{v.fecha_fin}</td>
+            <td>{v.estado}</td>
+            {esAdmin && (
               <td>
-                <button onClick={() => onActualizarEstado(sol.id, 'aprobado')}>✅</button>
-                <button onClick={() => onActualizarEstado(sol.id, 'rechazado')}>❌</button>
+                {v.estado === 'Pendiente' ? (
+                  <>
+                    <button
+                      className="btn-accion"
+                      onClick={() => onActualizarEstado(v.id, 'Aprobado')}
+                    >
+                      ✅ Aprobar
+                    </button>
+                    <button
+                      className="btn-accion"
+                      onClick={() => onActualizarEstado(v.id, 'Rechazado')}
+                    >
+                      ❌ Rechazar
+                    </button>
+                  </>
+                ) : (
+                  <em>—</em>
+                )}
               </td>
             )}
           </tr>

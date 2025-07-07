@@ -3,6 +3,7 @@ import API from '../services/api';
 import { useAuth } from '../context/useAuth';
 import VacacionesForm from '../components/VacacionesForm';
 import VacacionesTable from '../components/VacacionesTable';
+import './Vacaciones.css'; // ← archivo CSS global de la vista
 
 export default function Vacaciones() {
   const { rol } = useAuth();
@@ -25,15 +26,14 @@ export default function Vacaciones() {
   const handleSolicitud = async (datos) => {
     try {
       const payload = {
-        fecha_inicio: datos.fechaInicio,
-        fecha_fin: datos.fechaFin,
+        fecha_inicio: datos.fecha_inicio,
+        fecha_fin: datos.fecha_fin,
         ...(rol === 'admin' && { empleado_id: datos.empleado_id }),
       };
 
       const endpoint = rol === 'admin' ? '/vacaciones' : '/solicitar-vacaciones';
       const res = await API.post(endpoint, payload);
 
-      // Como admin no devuelve el objeto, solo mensaje, puedes hacer otro GET si es necesario
       setSolicitudes((prev) => [...prev, res.data || payload]);
       setMostrarFormulario(false);
     } catch (err) {
@@ -53,7 +53,7 @@ export default function Vacaciones() {
   };
 
   return (
-    <div>
+    <div className="vacaciones-container">
       <h2>Solicitudes de Vacaciones</h2>
 
       <button onClick={() => setMostrarFormulario(true)}>
@@ -62,16 +62,15 @@ export default function Vacaciones() {
 
       {mostrarFormulario && (
         <VacacionesForm
-          onSubmit={handleSolicitud}
+          onGuardar={handleSolicitud}
           onClose={() => setMostrarFormulario(false)}
-          esAdmin={rol === 'admin'}
         />
       )}
 
       <VacacionesTable
-        solicitudes={solicitudes}
-        onActualizarEstado={actualizarEstado}
+        vacaciones={solicitudes}
         esAdmin={rol === 'admin'}
+        onActualizarEstado={actualizarEstado}
       />
     </div>
   );
