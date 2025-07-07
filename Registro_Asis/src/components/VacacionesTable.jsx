@@ -19,7 +19,7 @@ export default function VacacionesTable({ vacaciones, esAdmin, onActualizarEstad
             <td>{vac.estado}</td>
             <td>
               {esAdmin && vac.estado === 'pendiente' ? (
-                <>
+                <div className="acciones-btns">
                   <button
                     className="btn-aprobar"
                     onClick={() => onActualizarEstado(vac.id, 'aprobado')}
@@ -32,7 +32,7 @@ export default function VacacionesTable({ vacaciones, esAdmin, onActualizarEstad
                   >
                     ❌ Rechazar
                   </button>
-                </>
+                </div>
               ) : (
                 '—'
               )}
