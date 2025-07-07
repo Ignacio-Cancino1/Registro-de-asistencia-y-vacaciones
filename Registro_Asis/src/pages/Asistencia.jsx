@@ -2,11 +2,8 @@ import { useState, useEffect } from 'react';
 import API from '../services/api';
 import { useAuth } from '../context/useAuth';
 import AsistenciaForm from '../components/AsistenciaForm';
-import '../pages/Asistencia.css'; // ✅ Solo importa su propio CSS aquí
-
-import './AsistenciaTable.css';
-import '../components/Asistencia.css';
-
+import AsistenciaTable from '../components/AsistenciaTable';
+import './Asistencia.css'; // ✅ Asegúrate de que este archivo exista en /pages
 
 export default function Asistencia() {
   const [asistencias, setAsistencias] = useState([]);
@@ -62,10 +59,12 @@ export default function Asistencia() {
   };
 
   return (
-    <div>
+    <div className="asistencia-container">
       <h2>Registros de Asistencia</h2>
 
-      <button onClick={() => setMostrarFormulario(true)}>➕ Registrar Asistencia</button>
+      <button className="btn-add" onClick={() => setMostrarFormulario(true)}>
+        ➕ Registrar Asistencia
+      </button>
 
       {mostrarFormulario && (
         <AsistenciaForm
@@ -75,7 +74,11 @@ export default function Asistencia() {
         />
       )}
 
-      <AsistenciaTable registros={asistencias} onEliminar={handleEliminar} esAdmin={rol === 'admin'} />
+      <AsistenciaTable
+        registros={asistencias}
+        onEliminar={handleEliminar}
+        esAdmin={rol === 'admin'}
+      />
     </div>
   );
 }
