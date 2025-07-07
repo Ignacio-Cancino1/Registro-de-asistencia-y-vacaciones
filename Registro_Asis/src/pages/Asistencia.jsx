@@ -3,6 +3,9 @@ import API from '../services/api';
 import { useAuth } from '../context/useAuth';
 import AsistenciaForm from '../components/AsistenciaForm';
 import AsistenciaTable from '../components/AsistenciaTable';
+import './AsistenciaTable.css';
+import '../components/Asistencia.css';
+
 
 export default function Asistencia() {
   const [asistencias, setAsistencias] = useState([]);
