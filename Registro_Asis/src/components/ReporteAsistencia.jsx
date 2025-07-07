@@ -5,6 +5,8 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import '../pages/Reportes.css';
+
 
 export default function ReporteAsistencia() {
   const [datos, setDatos] = useState([]);
