@@ -1,18 +1,18 @@
 # 📅 Aplicación de Registro de Asistencia y Vacaciones
 
-Sistema web desarrollado para automatizar y gestionar el control de asistencia, permisos y vacaciones de los empleados dentro de una organización. La aplicación permite registrar entradas y salidas, solicitar y aprobar ausencias, y generar reportes exportables en Excel o PDF. El sistema está pensado tanto para empleados como administradores, con roles diferenciados.
+Sistema web desarrollado para automatizar y gestionar el control de asistencia, permisos y vacaciones de los empleados dentro de una organización. La aplicación permite registrar entradas y salidas, solicitar y aprobar ausencias, y generar reportes exportables en Excel o PDF. El sistema está pensado tanto para empleados como para administradores, con roles diferenciados.
 
 ---
 
 ## 🚀 Tecnologías utilizadas
 
-- **Frontend**: React.js (con Vite)
+- **Frontend**: React.js (Vite)
 - **Backend**: Flask (Python)
 - **Base de datos**: PostgreSQL
 - **ORM**: SQLAlchemy
 - **Autenticación**: JWT (JSON Web Tokens)
-- **Exportación**: Pandas + Openpyxl + jsPDF
-- **Despliegue**: Vercel (frontend) y Render (backend)
+- **Exportación**: Pandas, Openpyxl, jsPDF
+- **Despliegue**: Vercel (frontend), Render (backend)
 
 ---
 
@@ -22,206 +22,213 @@ Sistema web desarrollado para automatizar y gestionar el control de asistencia, 
 
 - Node.js v16 o superior  
 - Python 3.10 o superior  
-- PostgreSQL 14+  
+- PostgreSQL 14 o superior  
 - Docker (opcional)
 
 ### 1. Clonar el repositorio
 
-
+```bash
 git clone https://github.com/Ignacio-Cancino1/Planificador-de-Horarios-Empresariales.git
 cd Planificador-de-Horarios-Empresariales
-2. Configurar el Backend (Flask)
-bash
-Copiar
-Editar
+```
+
+### 2. Backend (Flask)
+
+```bash
 cd backend
 python -m venv venv
-source venv/bin/activate     # En Windows: venv\Scripts\activate
+source venv/bin/activate   # En Windows: venv\Scripts\activate
 pip install -r requirements.txt
 python app.py
-3. Configurar el Frontend (React)
-bash
-Copiar
-Editar
+```
+
+### 3. Frontend (React)
+
+```bash
 cd frontend
 npm install
 npm run dev
-Asegúrate de tener PostgreSQL corriendo y las variables de entorno correctamente configuradas en .env.
+```
 
-✅ Funcionalidades principales
-👤 Rol: Empleado
-Iniciar sesión con usuario y contraseña
+> Asegúrate de tener PostgreSQL corriendo y las variables de entorno correctamente configuradas en `.env`.
 
-Registrar asistencia (entrada/salida)
+---
 
-Solicitar vacaciones o permisos
+## ✅ Funcionalidades principales
 
-Ver su historial de asistencias y vacaciones
+### 👤 Rol: Empleado
 
-❗ Nota: Aunque se planificó un cambio obligatorio de contraseña en el primer inicio de sesión, esta funcionalidad no fue implementada completamente.
+- Iniciar sesión con usuario y contraseña.
+- Registrar asistencia (entrada y salida).
+- Solicitar vacaciones o permisos.
+- Ver historial de asistencias y vacaciones.
 
-🛠️ Rol: Administrador
-Gestionar empleados (crear, editar, eliminar)
+> ❗ *Nota: Aunque se planificó un cambio obligatorio de contraseña en el primer inicio de sesión, esta funcionalidad no fue implementada completamente.*
 
-Revisar registros de asistencia por fecha o usuario
+### 🛠️ Rol: Administrador
 
-Aprobar o rechazar solicitudes de vacaciones
+- Gestionar empleados (crear, editar, eliminar).
+- Ver registros de asistencia diarios y mensuales.
+- Aprobar o rechazar solicitudes de vacaciones.
+- Generar reportes por empleado, mes o fechas.
+- Exportar reportes a Excel y PDF.
+- Ver estadísticas en el dashboard (tarjetas y gráficos).
 
-Generar reportes (por mes, por empleado, por fechas)
+---
 
-Exportar reportes a Excel y PDF
+## 🔧 Características agregadas durante el desarrollo
 
-Ver panel resumen (dashboard con estadísticas)
+- Dashboard con tarjetas de resumen (asistencias, ausencias, vacaciones, horas trabajadas).
+- Calendario de próximos eventos relevantes.
+- Gráficos estadísticos usando Recharts.
+- Sistema de filtros en reportes: por mes, empleado y rango de fechas.
+- Exportación de reportes a Excel y PDF.
+- Protección de rutas y acciones según el rol.
+- Estilos personalizados aplicados con CSS.
 
-🔧 Características agregadas durante el desarrollo
-Durante el desarrollo se añadieron varias funcionalidades que no estaban en el plan inicial, como:
+> ❗ *La redirección automática a cambio de contraseña quedó pendiente por falta de tiempo.*
 
-Dashboard con tarjetas de resumen (asistencias, ausencias, vacaciones, horas trabajadas)
+---
 
-Calendario de próximos eventos (vacaciones, ausencias)
+## 🧪 Datos de prueba y acceso
 
-Gráficos con estadísticas (usando Recharts)
+Puedes utilizar estos usuarios de prueba:
 
-Sistema de filtros avanzados en reportes (por mes, empleado y fechas)
+### Admin
 
-Exportación de reportes a Excel y PDF
+- **Usuario**: `admin@empresa.com`  
+- **Contraseña**: `123456`
 
-Protección de rutas por roles (empleado vs. admin)
+### Empleados
 
-Estilos visuales personalizados con CSS
+- **Usuario**: `empleado1@empresa.com`  
+- **Contraseña**: `123456`
 
-❗ Algunas funcionalidades previstas, como la redirección automática al formulario de cambio de contraseña, quedaron pendientes por falta de tiempo.
+- **Usuario**: `empleado2@empresa.com`  
+- **Contraseña**: `123456`
 
-🧪 Datos de prueba y acceso
-Puedes usar estos datos para probar la aplicación directamente desde el despliegue:
+> Los usuarios tienen datos de asistencia y vacaciones precargados para pruebas de reportes y dashboard.
 
-Admin (acceso total)
-Usuario: admin@empresa.com
+---
 
-Contraseña: 123456
+## 🧩 Estructura de base de datos
 
-Empleado (solo su información)
-Usuario: empleado1@empresa.com
-
-Contraseña: 123456
-
-Todos los usuarios están pre-cargados con asistencias y solicitudes de vacaciones para pruebas de reportes y dashboard.
-
-🧩 Estructura de la base de datos
 Tablas principales:
 
-usuarios
+- `usuarios`  
+- `roles`  
+- `asistencia`  
+- `vacaciones`  
+- `reportes`  
+- `notificaciones`
 
-roles
+Relaciones clave:
+- Un `usuario` tiene muchos registros de `asistencia`, `vacaciones` y `reportes`.
+- `roles` define los permisos del usuario (empleado o administrador).
 
-asistencia
+---
 
-vacaciones
+## 🗓️ Plan de trabajo inicial
 
-reportes
+### Semana 1 – PMN (Prototipo Mínimo Navegable)
 
-notificaciones
+- Diseño básico de pantallas y navegación.
+- Estructura de rutas con React Router.
+- Primeros componentes con datos simulados.
 
-Relaciones:
-Un usuario tiene muchas asistencias, muchas vacaciones, y puede generar múltiples reportes. El sistema diferencia roles para aplicar permisos adecuados.
+### Semana 2 – PMV (Producto Mínimo Viable)
 
-🗓️ Plan de trabajo inicial
-Semana 1 – PMN (Prototipo Mínimo Navegable)
-Diseño de pantallas y navegación básica
+- Login con control de roles.
+- Registro de asistencia funcional.
+- Solicitud de vacaciones guardada en base de datos.
+- Reportes iniciales y visualización de registros.
 
-Rutas principales con React Router
+---
 
-Componentes funcionales con datos simulados
+## 🧠 Consideraciones técnicas
 
-Semana 2 – PMV (Producto Mínimo Viable)
-Login funcional con control de roles y sesiones
+- Autenticación segura con JWT.
+- Protección por roles tanto en frontend como backend.
+- Exclusión de días no hábiles (manual).
+- Persistencia de sesión en el navegador.
+- Exportación a Excel y PDF usando librerías del backend y frontend.
 
-Registro real de asistencia (con conexión a backend)
+---
 
-Solicitud y visualización de vacaciones
+## 📌 Pendientes y decisiones abiertas
 
-Generación de reportes básicos
+- Implementar sistema de feriados (API o manual).
+- Notificaciones por correo (solo internas por ahora).
+- Rediseño visual con Tailwind o Bootstrap.
+- Posible migración a VPS con Docker.
 
-🧠 Consideraciones técnicas
-Manejo de sesiones seguro con JWT
+---
 
-Exclusión de días no laborables en solicitudes
+## 🌐 Despliegue en producción
 
-Exportación de reportes a formatos PDF y Excel
+### 🔹 Frontend (Vercel)
 
-Control de permisos por rol desde frontend y backend
+📍 **URL del sitio**:  
+[https://planificador-de-horarios.vercel.app](https://planificador-de-horarios.vercel.app)
 
-Persistencia de login en frontend (con localStorage)
+**Pasos para desplegar en Vercel:**
 
-📌 Pendientes y decisiones abiertas
-Sistema de feriados: ¿manual o con API externa?
+1. Crear cuenta en [vercel.com](https://vercel.com).  
+2. Importar el repositorio desde GitHub.  
+3. Establecer `/frontend` como carpeta raíz.  
+4. Configurar la variable de entorno:
 
-Notificaciones: ¿solo internas o también por correo?
-
-Mejora visual con Tailwind o Bootstrap
-
-Posible despliegue completo en VPS con Docker
-
-🌐 Despliegue en producción
-🔹 Frontend (React) en Vercel
-📍 URL del sitio en línea:
-https://vercel.com/ignacio-cancinos-projects/registro-de-asistencia-y-vacaciones
-
-Pasos para desplegar:
-Crear cuenta en vercel.com
-
-Importar el repositorio desde GitHub
-
-Elegir /frontend como directorio raíz
-
-Configurar la variable de entorno:
-
-bash
-Copiar
-Editar
+```env
 VITE_API_URL=https://planificador-api.onrender.com/api
-🔸 Backend (Flask) en Render
-📍 URL del backend:
-https://registro-de-asistencia-y-vacaciones.onrender.com
+```
 
-Pasos para desplegar:
-Crear servicio web en Render e importar el proyecto (/backend)
+---
 
-Configurar las variables de entorno:
+### 🔸 Backend (Render)
 
-bash
-Copiar
-Editar
+📍 **URL del backend**:  
+[https://planificador-api.onrender.com](https://planificador-api.onrender.com)
+
+**Pasos para desplegar en Render:**
+
+1. Crear un nuevo servicio web y subir la carpeta `/backend`.  
+2. Establecer las siguientes variables de entorno:
+
+```env
 DATABASE_URL=postgresql://usuario:clave@host:puerto/db
 SECRET_KEY=clave_super_secreta
 JWT_SECRET=otra_clave_para_tokens
-Comando de inicio:
+```
 
-bash
-Copiar
-Editar
+3. Comando de inicio:
+
+```bash
 gunicorn app:app
-o
+```
 
-bash
-Copiar
-Editar
-python app.py
-Render expone automáticamente el puerto $PORT, no es necesario definirlo manualmente
+> Render detecta automáticamente el puerto (`$PORT`), no es necesario configurarlo manualmente.
 
-🔐 Variables de entorno requeridas
-Frontend (Vercel)
-env
-Copiar
-Editar
+---
+
+## 🔐 Variables de entorno requeridas
+
+### Frontend (Vercel)
+
+```env
 VITE_API_URL=https://planificador-api.onrender.com/api
-Backend (Render)
-env
-Copiar
-Editar
+```
+
+### Backend (Render)
+
+```env
 DATABASE_URL=postgresql://usuario:clave@host:puerto/db
 SECRET_KEY=clave_para_sesiones
 JWT_SECRET=clave_para_tokens_jwt
-🪪 Licencia
-MIT © 2025 Ignacio Cancino
+```
+
+---
+
+## 🪪 Licencia
+
+MIT © 2025 Ignacio Cancino  
 Este proyecto puede ser usado, modificado y distribuido libremente bajo los términos de la licencia MIT.
