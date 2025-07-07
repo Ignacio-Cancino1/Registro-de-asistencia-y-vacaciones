@@ -1,27 +1,29 @@
 .vacaciones-container {
+  background-color: #f9f9f9;
   padding: 2rem;
-  color: #f0f0f0;
-  background-color: #1e1e1e;
-  min-height: 100vh;
+  border-radius: 12px;
+  margin: 2rem;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .vacaciones-container h2 {
-  margin-bottom: 1.5rem;
   font-size: 1.8rem;
-  color: #ffffff;
+  margin-bottom: 1.5rem;
+  color: #333;
 }
 
 .vacaciones-container button {
-  background-color: #3498db;
+  background-color: #3b82f6;
   color: white;
-  padding: 0.6rem 1.2rem;
+  padding: 0.5rem 1rem;
+  font-weight: bold;
   border: none;
   border-radius: 8px;
-  font-weight: bold;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  margin-bottom: 1.5rem;
+  transition: background-color 0.2s ease-in-out;
 }
 
 .vacaciones-container button:hover {
-  background-color: #2980b9;
+  background-color: #2563eb;
 }
