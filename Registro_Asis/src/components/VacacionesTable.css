@@ -27,7 +27,7 @@
 }
 
 .btn-aprobar {
-  background-color: #28a745;
+  background-color: #28a745 !important;
   color: white;
   padding: 6px 12px;
   border: none;
@@ -37,11 +37,11 @@
 }
 
 .btn-aprobar:hover {
-  background-color: #218838;
+  background-color: #218838 !important;
 }
 
 .btn-rechazar {
-  background-color: #dc3545;
+  background-color: #dc3545 !important;
   color: white;
   padding: 6px 12px;
   border: none;
@@ -51,5 +51,5 @@
 }
 
 .btn-rechazar:hover {
-  background-color: #c82333;
+  background-color: #c82333 !important;
 }
