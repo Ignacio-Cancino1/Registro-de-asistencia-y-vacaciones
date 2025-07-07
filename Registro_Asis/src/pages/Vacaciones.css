@@ -1,29 +1,33 @@
+/* Fondo general oscuro */
 .vacaciones-container {
-  background-color: #f9f9f9;
+  background-color: #1e1e1e;
   padding: 2rem;
-  border-radius: 12px;
-  margin: 2rem;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  color: white;
+  max-width: 900px;
+  margin: 2rem auto;
 }
 
+/* Título */
 .vacaciones-container h2 {
   font-size: 1.8rem;
-  margin-bottom: 1.5rem;
-  color: #333;
+  margin-bottom: 1.2rem;
 }
 
+/* Botón para registrar solicitud */
 .vacaciones-container button {
-  background-color: #3b82f6;
-  color: white;
-  padding: 0.5rem 1rem;
-  font-weight: bold;
+  background-color: #4a90e2;
   border: none;
-  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  color: white;
+  border-radius: 6px;
+  font-weight: bold;
   cursor: pointer;
+  transition: background-color 0.3s;
   margin-bottom: 1.5rem;
-  transition: background-color 0.2s ease-in-out;
 }
 
 .vacaciones-container button:hover {
-  background-color: #2563eb;
+  background-color: #3b7ac9;
 }
