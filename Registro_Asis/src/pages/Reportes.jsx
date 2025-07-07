@@ -3,6 +3,7 @@ import ReporteAsistencia from '../components/ReporteAsistencia';
 import ReporteVacaciones from '../components/ReporteVacaciones';
 import ReporteAusencias from '../components/ReporteAusencias';
 import ReporteCumplimiento from '../components/ReporteCumplimiento';
+import './Reportes.css'; // Asegúrate de tener este archivo en /pages
 
 export default function Reportes() {
   const [reporteActivo, setReporteActivo] = useState('asistencia');
@@ -23,22 +24,39 @@ export default function Reportes() {
   };
 
   return (
-    <div>
+    <div className="reportes-container">
       <h2>Reportes</h2>
-      <div style={{ marginBottom: '1rem' }}>
-        <button onClick={() => setReporteActivo('asistencia')} style={{ marginRight: '0.5rem' }}>
+
+      <div className="filtro-tabs">
+        <button
+          className={reporteActivo === 'asistencia' ? 'active' : ''}
+          onClick={() => setReporteActivo('asistencia')}
+        >
           Asistencia
         </button>
-        <button onClick={() => setReporteActivo('vacaciones')} style={{ marginRight: '0.5rem' }}>
+
+        <button
+          className={reporteActivo === 'vacaciones' ? 'active' : ''}
+          onClick={() => setReporteActivo('vacaciones')}
+        >
           Vacaciones
         </button>
-        <button onClick={() => setReporteActivo('ausencias')} style={{ marginRight: '0.5rem' }}>
+
+        <button
+          className={reporteActivo === 'ausencias' ? 'active' : ''}
+          onClick={() => setReporteActivo('ausencias')}
+        >
           Ausencias
         </button>
-        <button onClick={() => setReporteActivo('cumplimiento')}>
+
+        <button
+          className={reporteActivo === 'cumplimiento' ? 'active' : ''}
+          onClick={() => setReporteActivo('cumplimiento')}
+        >
           Cumplimiento de Horario
         </button>
       </div>
+
       {renderReporte()}
     </div>
   );
